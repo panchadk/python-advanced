@@ -60,7 +60,7 @@
   .cell .reset-btn{background:transparent;color:var(--muted);border:1px solid var(--line)}
   .cell .reset-btn:hover{border-color:var(--muted);color:var(--text)}
   .editor{position:relative;font-family:var(--mono);font-size:14px;line-height:1.55}
-  .editor textarea{width:100%;min-height:64px;resize:vertical;border:none;outline:none;
+  .editor textarea{width:100%;min-height:64px;resize:vertical;border:none;outline:none;overflow:hidden;box-sizing:border-box;
     padding:14px 16px;background:var(--code-bg);color:var(--code-text);
     font-family:var(--mono);font-size:14px;line-height:1.55;tab-size:4;white-space:pre}
   .editor textarea::selection{background:#3a5a86}
@@ -356,13 +356,32 @@ function gradeMaybe(cell, output){
   }
 }
 
+// make a textarea grow to fit its content (so students see all the code)
+function autoGrow(ta){
+  ta.style.height='auto';
+  ta.style.height=(ta.scrollHeight+2)+'px';
+}
+// tell the parent (Moodle iframe) how tall this page is, so it can resize
+function reportHeight(){
+  const h=Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
+  parent.postMessage({type:'lesson-height', height:h}, '*');
+}
+window.addEventListener('load', reportHeight);
+window.addEventListener('resize', reportHeight);
+// re-report whenever content changes size (running a cell, output appearing, editors growing)
+if(window.ResizeObserver){
+  new ResizeObserver(reportHeight).observe(document.body);
+}
+
 // wire buttons + Ctrl/Cmd+Enter to run
 document.querySelectorAll('[data-cell]').forEach(cell=>{
   const ta=cell.querySelector('textarea');
   const original=ta.value;
+  autoGrow(ta);                         // size to initial code
+  ta.addEventListener('input',()=>{ autoGrow(ta); });
   cell.querySelector('[data-run]').addEventListener('click',()=>{ if(ready) runCell(cell); });
   cell.querySelector('[data-reset]').addEventListener('click',()=>{
-    ta.value=original; cell.querySelector('.out').className='out';
+    ta.value=original; autoGrow(ta); cell.querySelector('.out').className='out';
     const c=cell.parentElement.querySelector('.check'); if(c)c.className='check';
   });
   ta.addEventListener('keydown',e=>{
@@ -370,9 +389,11 @@ document.querySelectorAll('[data-cell]').forEach(cell=>{
     if(e.key==='Tab'){e.preventDefault();
       const s=ta.selectionStart,en=ta.selectionEnd;
       ta.value=ta.value.slice(0,s)+'    '+ta.value.slice(en);
-      ta.selectionStart=ta.selectionEnd=s+4;}
+      ta.selectionStart=ta.selectionEnd=s+4; autoGrow(ta);}
   });
 });
+// report again after Python finishes loading (banner change shifts layout)
+const _bootDone=setInterval(()=>{ if(ready){reportHeight(); clearInterval(_bootDone);} }, 500);
 </script>
 </body>
 </html>
