@@ -1,0 +1,31 @@
+AVATAR VIDEO SCRIPT — CHAPTER 4: DATA CLEANING & PREPARATION
+Applied Data Science & Machine Learning
+(For HeyGen / Synthesia: paste the SPOKEN TEXT block. Full ~90 sec, or SHORT ~55 sec for the free 1-min plan.)
+
+----------------------------------------------------------------------
+SPOKEN TEXT (full, ~90 sec):
+----------------------------------------------------------------------
+
+Welcome to Chapter Four — data cleaning and preparation.
+
+Here's a truth every data scientist learns fast: real data is messy, and cleaning it is where you'll actually spend most of your time. Models are only as good as the data you feed them, so this chapter is one of the most important in the course.
+
+We start with the problems you'll see constantly. Numbers stored as text, which quietly break any math you try. Inconsistent text — the same city typed four different ways, which splits one category into several. And missing values, those empty holes in every real dataset.
+
+You'll fix each of these: converting types, standardizing text with a single vectorized step, and filling gaps sensibly. Then we handle outliers — extreme values that can distort your averages and your models — using the interquartile range rule to flag them deliberately.
+
+After that, we prepare data for modeling: one-hot encoding, which turns categories into numeric columns a model can use, and scaling, which puts features like age and salary onto a comparable range so one doesn't unfairly dominate.
+
+And finally, the concept that separates careful data scientists from everyone else: data leakage. If you compute your scaling or fill values using the whole dataset, including your test set, you leak future information into training and fool yourself with inflated scores. You'll learn the fix — fit on training data only.
+
+It all runs live. Clean the messy table yourself, try the exercises, and take the quiz. Next up, Chapter Five — exploratory data analysis. See you there.
+
+----------------------------------------------------------------------
+SHORT VERSION (~55 sec, fits HeyGen free 1-minute cap):
+----------------------------------------------------------------------
+
+Welcome to Chapter Four — data cleaning and preparation. Real data is messy, and cleaning it is where you'll spend most of your time.
+
+You'll fix the problems that show up constantly: numbers stored as text, inconsistent casing that splits one category into several, and missing values. Then you'll flag outliers using the interquartile range, and prepare data for modeling with one-hot encoding and scaling. Finally, you'll learn about data leakage — the deadly mistake of using test data when computing your scalers or fill values — and the fix: fit on training data only.
+
+It all runs live. Clean the messy table, try the exercises, take the quiz — and I'll see you in Chapter Five, on exploratory data analysis. Let's go.
