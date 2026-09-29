@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DS&ML · Ch 01 — NumPy deep dive — Learn to Grow</title>
+<style>
+  :root{
+    --navy:#1e3a5f; --navy-2:#16273f; --gold:#f2c14e; --gold-deep:#e0a92e;
+    --paper:#ffffff; --wash:#f4f6f9; --line:#e2e6ec; --text:#1c2530;
+    --muted:#5f6b7a; --code-bg:#16273f; --code-text:#e8edf4;
+    --run:#2f9e6f; --run-bg:#e7f5ee; --err:#c0392b; --err-bg:#fbeae8;
+    --kw:#f2c14e; --str:#8fd19e; --com:#7d8ba0; --num:#c98ad6; --fn:#7fb0e0;
+    --mono:ui-monospace,"Cascadia Code","JetBrains Mono",Menlo,Consolas,monospace;
+    --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--wash);color:var(--text);font-family:var(--sans);
+    font-size:16px;line-height:1.6}
+  .wrap{max-width:820px;margin:0 auto;padding:0 20px 80px}
+
+  /* runtime status banner */
+  #status{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;
+    background:var(--navy);color:#fff;font-family:var(--mono);font-size:12.5px;
+    padding:9px 16px;border-bottom:3px solid var(--gold)}
+  #status .dot{width:9px;height:9px;border-radius:50%;background:var(--gold);
+    animation:pulse 1.1s infinite}
+  #status.ready .dot{background:var(--run);animation:none}
+  #status.ready{background:var(--navy-2)}
+  @keyframes pulse{50%{opacity:.35}}
+
+  header.ch{background:var(--navy);color:#fff;border-radius:0 0 14px 14px;
+    padding:30px 28px 26px;margin-bottom:8px}
+  header.ch .eyebrow{font-family:var(--mono);font-size:12.5px;color:var(--gold);margin:0 0 8px}
+  header.ch h1{margin:0 0 10px;font-size:30px;line-height:1.12;letter-spacing:-.5px}
+  header.ch p{margin:0;color:#c8d4e2;max-width:60ch;font-size:16px}
+
+  h2{font-size:14px;font-family:var(--mono);color:var(--gold-deep);margin:40px 0 4px;
+    display:flex;align-items:center;gap:10px}
+  h2::before{content:attr(data-n);background:var(--navy);color:#fff;font-size:11.5px;
+    padding:3px 8px;border-radius:5px}
+  h3{font-size:21px;margin:6px 0 10px;letter-spacing:-.3px}
+  p{margin:0 0 14px}
+  code.inl{font-family:var(--mono);background:#eaeef4;padding:1.5px 6px;border-radius:4px;
+    font-size:.87em;color:#a05a06}
+
+  /* editable python cell */
+  .cell{background:var(--paper);border:1px solid var(--line);border-radius:11px;
+    margin:20px 0;overflow:hidden;box-shadow:0 1px 2px rgba(20,30,45,.04)}
+  .cell .bar{display:flex;align-items:center;gap:10px;background:#eef1f6;
+    border-bottom:1px solid var(--line);padding:7px 12px;font-family:var(--mono);
+    font-size:11.5px;color:var(--muted)}
+  .cell .bar .lbl{color:var(--gold-deep)}
+  .cell .bar .actions{margin-left:auto;display:flex;gap:8px}
+  .cell button{font-family:var(--mono);font-size:12px;border:none;border-radius:6px;
+    padding:5px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+  .cell .run-btn{background:var(--run);color:#fff}
+  .cell .run-btn:hover{background:#25835b}
+  .cell .run-btn:disabled{background:#9db4ab;cursor:progress}
+  .cell .reset-btn{background:transparent;color:var(--muted);border:1px solid var(--line)}
+  .cell .reset-btn:hover{border-color:var(--muted);color:var(--text)}
+  .editor{position:relative;font-family:var(--mono);font-size:14px;line-height:1.55}
+  .editor textarea{width:100%;min-height:64px;resize:vertical;border:none;outline:none;
+    padding:14px 16px;background:var(--code-bg);color:var(--code-text);
+    font-family:var(--mono);font-size:14px;line-height:1.55;tab-size:4;white-space:pre}
+  .editor textarea::selection{background:#3a5a86}
+  .out{border-top:1px dashed var(--line);padding:12px 16px;background:#fafbfd;
+    font-family:var(--mono);font-size:13px;white-space:pre-wrap;min-height:0;display:none}
+  .out.show{display:block}
+  .out.ok{color:#243}.out.err{background:var(--err-bg);color:var(--err)}
+  .out .tag{font-family:var(--mono);font-size:10.5px;color:var(--muted);
+    display:block;margin-bottom:5px}
+
+  .note{border-left:3px solid var(--gold);background:#fdf6e3;padding:12px 16px;
+    border-radius:0 8px 8px 0;margin:18px 0}
+  .note b{display:block;font-family:var(--mono);font-size:12px;color:#8a6410;margin-bottom:3px}
+  .note.tip{border-color:var(--run);background:var(--run-bg)}
+  .note.tip b{color:#1c6b48}
+
+  .exercise{border:1.5px solid var(--navy);border-radius:12px;padding:20px 22px;margin:26px 0;background:var(--paper)}
+  .exercise .xh{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .exercise .xh .t{font-family:var(--mono);font-size:11px;background:var(--navy);
+    color:#fff;padding:3px 9px;border-radius:6px}
+  .exercise .xh h4{margin:0;font-size:17px}
+  .exercise .task{margin:8px 0 12px}
+  .check{margin-top:10px;font-family:var(--mono);font-size:12.5px;display:none}
+  .check.pass{display:block;color:var(--run)} .check.fail{display:block;color:var(--err)}
+  details.soln{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px}
+  details.soln summary{font-family:var(--mono);font-size:13px;color:var(--gold-deep);cursor:pointer}
+
+  footer.nav{display:flex;justify-content:space-between;gap:14px;margin-top:50px;
+    border-top:1px solid var(--line);padding-top:20px;font-family:var(--mono);font-size:13px}
+  footer.nav a{color:var(--navy);text-decoration:none;border:1px solid var(--line);
+    border-radius:9px;padding:12px 16px;flex:1}
+  footer.nav a:hover{border-color:var(--navy)}
+  footer.nav a.n{text-align:right}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+
+<body>
+<div id="status"><span class="dot"></span><span id="status-text">Loading Python runtime… first load ~10–15s, then cached.</span></div>
+
+<div class="wrap">
+  <header class="ch">
+    <p class="eyebrow">Data Science & ML · Chapter 01 · Data foundations</p>
+    <h1>NumPy deep dive</h1>
+    <p>NumPy is the numerical engine under pandas, scikit-learn, and almost every data tool in Python. This chapter goes deep: arrays, vectorization, broadcasting, and a little linear algebra. Every cell runs live.</p>
+  </header>
+
+  <h2 data-n="1.1">Lesson</h2>
+  <h3>Loading NumPy & creating arrays</h3>
+  <p>In browser Python we install packages with <code class="inl">micropip</code>. Run this first cell once; then <code class="inl">np</code> is available in every cell below.</p>
+
+  <div class="cell" data-cell>
+    <div class="bar"><span class="lbl">In [ ]:</span> python3
+      <span class="actions">
+        <button class="reset-btn" data-reset>↺ Reset</button>
+        <button class="run-btn" data-run disabled>▶ Run</button>
+      </span></div>
+    <div class="editor"><textarea spellcheck="false">import micropip
+await micropip.install(&quot;numpy&quot;)
+import numpy as np
+
+a = np.array([1, 2, 3, 4])
+print(&quot;array:&quot;, a)
+print(&quot;shape:&quot;, a.shape, &quot;dtype:&quot;, a.dtype)
+print(&quot;zeros:&quot;, np.zeros(3))
+print(&quot;range:&quot;, np.arange(0, 10, 2))</textarea></div>
+    <div class="out"></div>
+  </div>
+
+  <h2 data-n="1.2">Lesson</h2>
+  <h3>Vectorization — no loops needed</h3>
+  <p>An operation on an array applies to every element at once. This is shorter than a loop and dramatically faster, because the work happens in optimized C under the hood.</p>
+
+  <div class="cell" data-cell>
+    <div class="bar"><span class="lbl">In [ ]:</span> python3
+      <span class="actions">
+        <button class="reset-btn" data-reset>↺ Reset</button>
+        <button class="run-btn" data-run disabled>▶ Run</button>
+      </span></div>
+    <div class="editor"><textarea spellcheck="false">a = np.array([1, 2, 3, 4, 5])
+print(a * 10)
+print(a ** 2)
+print(a + a)
+print(&quot;mean:&quot;, a.mean(), &quot; sum:&quot;, a.sum(), &quot; std:&quot;, round(a.std(), 3))</textarea></div>
+    <div class="out"></div>
+  </div>
+  <div class="note tip"><b>TIP</b>
+    Rule of thumb: if you find yourself writing a <code class="inl">for</code> loop over a NumPy array, there's almost always a vectorized version that's faster and clearer.</div>
+
+  <h2 data-n="1.3">Lesson</h2>
+  <h3>Indexing, slicing & boolean masks</h3>
+  <p>Arrays index like lists, but add two superpowers: multi-dimensional slicing, and boolean masks that select elements by condition.</p>
+
+  <div class="cell" data-cell>
+    <div class="bar"><span class="lbl">In [ ]:</span> python3
+      <span class="actions">
+        <button class="reset-btn" data-reset>↺ Reset</button>
+        <button class="run-btn" data-run disabled>▶ Run</button>
+      </span></div>
+    <div class="editor"><textarea spellcheck="false">a = np.arange(10)
+print(a[2:6])
+print(a[a &gt; 5])          # boolean mask
+a[a % 2 == 0] = 0        # set all evens to 0
+print(a)</textarea></div>
+    <div class="out"></div>
+  </div>
+
+  <h2 data-n="1.4">Lesson</h2>
+  <h3>2-D arrays and axes</h3>
+  <p>Real data is usually 2-D: rows and columns. The <code class="inl">axis</code> argument chooses the direction an operation runs — <code class="inl">axis=0</code> down columns, <code class="inl">axis=1</code> across rows.</p>
+
+  <div class="cell" data-cell>
+    <div class="bar"><span class="lbl">In [ ]:</span> python3
+      <span class="actions">
+        <button class="reset-btn" data-reset>↺ Reset</button>
+        <button class="run-btn" data-run disabled>▶ Run</button>
+      </span></div>
+    <div class="editor"><textarea spellcheck="false">m = np.array([[1, 2, 3],
+              [4, 5, 6]])
+print(&quot;shape:&quot;, m.shape)
+print(&quot;column sums:&quot;, m.sum(axis=0))
+print(&quot;row means:&quot;, m.mean(axis=1))
+print(&quot;transpose:\n&quot;, m.T)</textarea></div>
+    <div class="out"></div>
+  </div>
+
+  <h2 data-n="1.5">Lesson</h2>
+  <h3>Broadcasting</h3>
+  <p>Broadcasting lets NumPy combine arrays of different shapes by automatically stretching the smaller one. It's how you add a vector to every row of a matrix without a loop.</p>
+
+  <div class="cell" data-cell>
+    <div class="bar"><span class="lbl">In [ ]:</span> python3
+      <span class="actions">
+        <button class="reset-btn" data-reset>↺ Reset</button>
+        <button class="run-btn" data-run disabled>▶ Run</button>
+      </span></div>
+    <div class="editor"><textarea spellcheck="false">m = np.array([[1, 2, 3],
+              [4, 5, 6]])
+row = np.array([10, 20, 30])
+print(m + row)            # row added to each row
+print(m * 2)              # scalar broadcast</textarea></div>
+    <div class="out"></div>
+  </div>
+  <div class="note"><b>WHY IT MATTERS</b>
+    Broadcasting rules: NumPy compares shapes from the right; dimensions must be equal or one of them must be 1. Master this and most 'reshape' headaches disappear.</div>
+
+  <h2 data-n="1.6">Lesson</h2>
+  <h3>A little linear algebra</h3>
+  <p>NumPy's <code class="inl">@</code> operator does matrix multiplication, and <code class="inl">np.linalg</code> handles inverses, determinants, and solving systems — the machinery behind regression and many ML models.</p>
+
+  <div class="cell" data-cell>
+    <div class="bar"><span class="lbl">In [ ]:</span> python3
+      <span class="actions">
+        <button class="reset-btn" data-reset>↺ Reset</button>
+        <button class="run-btn" data-run disabled>▶ Run</button>
+      </span></div>
+    <div class="editor"><textarea spellcheck="false">A = np.array([[2, 1],
+              [1, 3]])
+b = np.array([1, 2])
+x = np.linalg.solve(A, b)   # solves A x = b
+print(&quot;solution:&quot;, x)
+print(&quot;check A@x:&quot;, A @ x)</textarea></div>
+    <div class="out"></div>
+  </div>
+
+  <h2 data-n="✎">Exercises</h2>
+  <h3>Practice</h3>
+
+  <div class="exercise">
+    <div class="xh"><span class="t">EX 1</span><h4>Vectorized normalization</h4></div>
+    <p class="task">Given array <code class="inl">v</code>, print it scaled so the values sum to 1 — i.e. each element divided by the total. (NumPy is imported as <code class="inl">np</code> from the cells above.)</p>
+
+  <div class="cell" data-cell data-expect="[0.25 0.25 0.5 ]">
+    <div class="bar"><span class="lbl">In [ ]:</span> python3
+      <span class="actions">
+        <button class="reset-btn" data-reset>↺ Reset</button>
+        <button class="run-btn" data-run disabled>▶ Run &amp; check</button>
+      </span></div>
+    <div class="editor"><textarea spellcheck="false">v = np.array([2, 2, 4])
+# print v / v.sum()  -&gt;  [0.25 0.25 0.5 ]</textarea></div>
+    <div class="out"></div>
+  </div>
+    <div class="check"></div>
+    <details class="soln"><summary>Show solution</summary>
+      <p style="font-family:var(--mono);font-size:13px;margin-top:8px;white-space:pre-wrap">v = np.array([2, 2, 4])
+print(v / v.sum())</p>
+    </details>
+  </div>
+
+  <div class="exercise">
+    <div class="xh"><span class="t">EX 2</span><h4>Filter with a boolean mask</h4></div>
+    <p class="task">From <code class="inl">a</code>, print only the elements greater than 25.</p>
+
+  <div class="cell" data-cell data-expect="[30 40 60]">
+    <div class="bar"><span class="lbl">In [ ]:</span> python3
+      <span class="actions">
+        <button class="reset-btn" data-reset>↺ Reset</button>
+        <button class="run-btn" data-run disabled>▶ Run &amp; check</button>
+      </span></div>
+    <div class="editor"><textarea spellcheck="false">a = np.array([10, 30, 5, 40, 25, 60])
+# print the elements &gt; 25  -&gt;  [30 40 60]</textarea></div>
+    <div class="out"></div>
+  </div>
+    <div class="check"></div>
+    <details class="soln"><summary>Show solution</summary>
+      <p style="font-family:var(--mono);font-size:13px;margin-top:8px;white-space:pre-wrap">a = np.array([10, 30, 5, 40, 25, 60])
+print(a[a &gt; 25])</p>
+    </details>
+  </div>
+
+  <div class="exercise">
+    <div class="xh"><span class="t">EX 3</span><h4>Column means of a matrix</h4></div>
+    <p class="task">Print the mean of each column of <code class="inl">m</code>.</p>
+
+  <div class="cell" data-cell data-expect="[2. 3. 4.]">
+    <div class="bar"><span class="lbl">In [ ]:</span> python3
+      <span class="actions">
+        <button class="reset-btn" data-reset>↺ Reset</button>
+        <button class="run-btn" data-run disabled>▶ Run &amp; check</button>
+      </span></div>
+    <div class="editor"><textarea spellcheck="false">m = np.array([[1, 2, 3], [3, 4, 5]])
+# print [2. 3. 4.]</textarea></div>
+    <div class="out"></div>
+  </div>
+    <div class="check"></div>
+    <details class="soln"><summary>Show solution</summary>
+      <p style="font-family:var(--mono);font-size:13px;margin-top:8px;white-space:pre-wrap">m = np.array([[1, 2, 3], [3, 4, 5]])
+print(m.mean(axis=0))</p>
+    </details>
+  </div>
+
+  <footer class="nav">
+    <a href="#">← Course home</a>
+    <a class="n" href="#">Chapter 02 · pandas mastery I →</a>
+  </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script>
+let pyodide=null, ready=false;
+const statusEl=document.getElementById('status');
+const statusText=document.getElementById('status-text');
+
+async function boot(){
+  try{
+    pyodide = await loadPyodide();
+    // micropip is bundled but not auto-installed in recent Pyodide; load it once here
+    await pyodide.loadPackage("micropip");
+    // route python stdout/stderr so we can capture per-run
+    ready=true;
+    statusEl.classList.add('ready');
+    statusText.textContent='Python 3 ready — edit any cell and press Run.';
+    document.querySelectorAll('[data-run]').forEach(b=>{b.disabled=false;});
+  }catch(e){
+    statusText.textContent='Could not load Python runtime. Check your network/CDN access.';
+  }
+}
+boot();
+
+async function runCell(cell){
+  const code = cell.querySelector('textarea').value;
+  const out  = cell.querySelector('.out');
+  const btn  = cell.querySelector('[data-run]');
+  out.className='out show'; out.textContent='Running…';
+  btn.disabled=true;
+  // capture stdout + stderr
+  let captured='';
+  pyodide.setStdout({batched:(s)=>{captured+=s+"\n";}});
+  pyodide.setStderr({batched:(s)=>{captured+=s+"\n";}});
+  try{
+    await pyodide.runPythonAsync(code);
+    out.className='out show ok';
+    out.innerHTML='<span class="tag">output</span>'+ (captured.trimEnd()||'(no output — use print() to show a value)');
+    gradeMaybe(cell, captured.trimEnd());
+  }catch(err){
+    out.className='out show err';
+    const msg=String(err).split("\n").slice(-6).join("\n");
+    out.innerHTML='<span class="tag">error</span>'+msg;
+  }finally{
+    btn.disabled=false;
+  }
+}
+
+function gradeMaybe(cell, output){
+  const expect = cell.getAttribute('data-expect');
+  if(!expect) return;
+  const check = cell.parentElement.querySelector('.check');
+  if(!check) return;
+  if(output.trim()===expect.trim()){
+    check.className='check pass'; check.textContent='✓ Correct — output matches exactly.';
+  }else{
+    check.className='check fail'; check.textContent='✗ Not yet — expected: '+expect;
+  }
+}
+
+// wire buttons + Ctrl/Cmd+Enter to run
+document.querySelectorAll('[data-cell]').forEach(cell=>{
+  const ta=cell.querySelector('textarea');
+  const original=ta.value;
+  cell.querySelector('[data-run]').addEventListener('click',()=>{ if(ready) runCell(cell); });
+  cell.querySelector('[data-reset]').addEventListener('click',()=>{
+    ta.value=original; cell.querySelector('.out').className='out';
+    const c=cell.parentElement.querySelector('.check'); if(c)c.className='check';
+  });
+  ta.addEventListener('keydown',e=>{
+    if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault(); if(ready)runCell(cell);}
+    if(e.key==='Tab'){e.preventDefault();
+      const s=ta.selectionStart,en=ta.selectionEnd;
+      ta.value=ta.value.slice(0,s)+'    '+ta.value.slice(en);
+      ta.selectionStart=ta.selectionEnd=s+4;}
+  });
+});
+</script>
+</body>
+</html>
