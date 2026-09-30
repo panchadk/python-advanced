@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DS&ML · Ch 07 — Statistics for ML — Learn to Grow</title>
+<style>
+  :root{
+    --navy:#1e3a5f; --navy-2:#16273f; --gold:#f2c14e; --gold-deep:#e0a92e;
+    --paper:#ffffff; --wash:#f4f6f9; --line:#e2e6ec; --text:#1c2530;
+    --muted:#5f6b7a; --code-bg:#16273f; --code-text:#e8edf4;
+    --run:#2f9e6f; --run-bg:#e7f5ee; --err:#c0392b; --err-bg:#fbeae8;
+    --kw:#f2c14e; --str:#8fd19e; --com:#7d8ba0; --num:#c98ad6; --fn:#7fb0e0;
+    --mono:ui-monospace,"Cascadia Code","JetBrains Mono",Menlo,Consolas,monospace;
+    --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--wash);color:var(--text);font-family:var(--sans);
+    font-size:16px;line-height:1.6}
+  .wrap{max-width:820px;margin:0 auto;padding:0 20px 80px}
+
+  /* runtime status banner */
+  #status{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;
+    background:var(--navy);color:#fff;font-family:var(--mono);font-size:12.5px;
+    padding:9px 16px;border-bottom:3px solid var(--gold)}
+  #status .dot{width:9px;height:9px;border-radius:50%;background:var(--gold);
+    animation:pulse 1.1s infinite}
+  #status.ready .dot{background:var(--run);animation:none}
+  #status.ready{background:var(--navy-2)}
+  @keyframes pulse{50%{opacity:.35}}
+
+  header.ch{background:var(--navy);color:#fff;border-radius:0 0 14px 14px;
+    padding:30px 28px 26px;margin-bottom:8px}
+  header.ch .eyebrow{font-family:var(--mono);font-size:12.5px;color:var(--gold);margin:0 0 8px}
+  header.ch h1{margin:0 0 10px;font-size:30px;line-height:1.12;letter-spacing:-.5px}
+  header.ch p{margin:0;color:#c8d4e2;max-width:60ch;font-size:16px}
+
+  h2{font-size:14px;font-family:var(--mono);color:var(--gold-deep);margin:40px 0 4px;
+    display:flex;align-items:center;gap:10px}
+  h2::before{content:attr(data-n);background:var(--navy);color:#fff;font-size:11.5px;
+    padding:3px 8px;border-radius:5px}
+  h3{font-size:21px;margin:6px 0 10px;letter-spacing:-.3px}
+  p{margin:0 0 14px}
+  code.inl{font-family:var(--mono);background:#eaeef4;padding:1.5px 6px;border-radius:4px;
+    font-size:.87em;color:#a05a06}
+
+  /* editable python cell */
+  .cell{background:var(--paper);border:1px solid var(--line);border-radius:11px;
+    margin:20px 0;overflow:hidden;box-shadow:0 1px 2px rgba(20,30,45,.04)}
+  .cell .bar{display:flex;align-items:center;gap:10px;background:#eef1f6;
+    border-bottom:1px solid var(--line);padding:7px 12px;font-family:var(--mono);
+    font-size:11.5px;color:var(--muted)}
+  .cell .bar .lbl{color:var(--gold-deep)}
+  .cell .bar .actions{margin-left:auto;display:flex;gap:8px}
+  .cell button{font-family:var(--mono);font-size:12px;border:none;border-radius:6px;
+    padding:5px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+  .cell .run-btn{background:var(--run);color:#fff}
+  .cell .run-btn:hover{background:#25835b}
+  .cell .run-btn:disabled{background:#9db4ab;cursor:progress}
+  .cell .reset-btn{background:transparent;color:var(--muted);border:1px solid var(--line)}
+  .cell .reset-btn:hover{border-color:var(--muted);color:var(--text)}
+  .editor{position:relative;font-family:var(--mono);font-size:14px;line-height:1.55}
+  .editor textarea{width:100%;min-height:64px;resize:vertical;border:none;outline:none;overflow:hidden;box-sizing:border-box;
+    padding:14px 16px;background:var(--code-bg);color:var(--code-text);
+    font-family:var(--mono);font-size:14px;line-height:1.55;tab-size:4;white-space:pre}
+  .editor textarea::selection{background:#3a5a86}
+  .out{border-top:1px dashed var(--line);padding:12px 16px;background:#fafbfd;
+    font-family:var(--mono);font-size:13px;white-space:pre-wrap;min-height:0;display:none}
+  .out.show{display:block}
+  .out.ok{color:#243}.out.err{background:var(--err-bg);color:var(--err)}
+  .out .tag{font-family:var(--mono);font-size:10.5px;color:var(--muted);
+    display:block;margin-bottom:5px}
+
+  .note{border-left:3px solid var(--gold);background:#fdf6e3;padding:12px 16px;
+    border-radius:0 8px 8px 0;margin:18px 0}
+  .note b{display:block;font-family:var(--mono);font-size:12px;color:#8a6410;margin-bottom:3px}
+  .note.tip{border-color:var(--run);background:var(--run-bg)}
+  .note.tip b{color:#1c6b48}
+
+  .exercise{border:1.5px solid var(--navy);border-radius:12px;padding:20px 22px;margin:26px 0;background:var(--paper)}
+  .exercise .xh{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .exercise .xh .t{font-family:var(--mono);font-size:11px;background:var(--navy);
+    color:#fff;padding:3px 9px;border-radius:6px}
+  .exercise .xh h4{margin:0;font-size:17px}
+  .exercise .task{margin:8px 0 12px}
+  .check{margin-top:10px;font-family:var(--mono);font-size:12.5px;display:none}
+  .check.pass{display:block;color:var(--run)} .check.fail{display:block;color:var(--err)}
+  details.soln{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px}
+  details.soln summary{font-family:var(--mono);font-size:13px;color:var(--gold-deep);cursor:pointer}
+
+  footer.nav{display:flex;justify-content:space-between;gap:14px;margin-top:50px;
+    border-top:1px solid var(--line);padding-top:20px;font-family:var(--mono);font-size:13px}
+  footer.nav a{color:var(--navy);text-decoration:none;border:1px solid var(--line);
+    border-radius:9px;padding:12px 16px;flex:1}
+  footer.nav a:hover{border-color:var(--navy)}
+  footer.nav a.n{text-align:right}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+
+<body>
+<div id="status"><span class="dot"></span><span id="status-text">Loading Python runtime… first load ~10–15s, then cached.</span></div>
+
+<div class="wrap">
+  <header class="ch">
+    <p class="eyebrow">Data Science & ML · Chapter 07 · Exploration & statistics</p>
+    <h1>Statistics for ML</h1>
+    <p>The statistical ideas that make machine learning trustworthy: sampling, distributions, hypothesis testing, confidence intervals, and p-values — explained practically, with runnable code. The first cell installs NumPy and SciPy (a few seconds).</p>
+  </header>
+
+  <h2 data-n="7.1">Lesson</h2>
+  <h3>Setup</h3>
+  <p>We use NumPy for sampling and SciPy for the statistical tests. Run this once. We seed the random generator so results are reproducible.</p>
+
+  <div class="cell" data-cell>
+    <div class="bar"><span class="lbl">In [ ]:</span> python3
+      <span class="actions">
+        <button class="reset-btn" data-reset>↺ Reset</button>
+        <button class="run-btn" data-run disabled>▶ Run</button>
+      </span></div>
+    <div class="editor"><textarea spellcheck="false">import micropip
+await micropip.install([&quot;numpy&quot;, &quot;scipy&quot;])
+import numpy as np
+from scipy import stats
+np.random.seed(0)
+print(&quot;ready&quot;)</textarea></div>
+    <div class="out"></div>
+  </div>
+
+  <h2 data-n="7.2">Lesson</h2>
+  <h3>Sampling & the sample mean</h3>
+  <p>We rarely see a whole population — we work with samples. A sample's mean estimates the population mean, but it wobbles from sample to sample. Larger samples wobble less.</p>
+
+  <div class="cell" data-cell>
+    <div class="bar"><span class="lbl">In [ ]:</span> python3
+      <span class="actions">
+        <button class="reset-btn" data-reset>↺ Reset</button>
+        <button class="run-btn" data-run disabled>▶ Run</button>
+      </span></div>
+    <div class="editor"><textarea spellcheck="false">pop = np.random.normal(loc=50, scale=10, size=100000)  # &quot;population&quot;
+small = np.random.choice(pop, 10)
+large = np.random.choice(pop, 1000)
+print(&quot;population mean:&quot;, round(pop.mean(), 2))
+print(&quot;small sample mean:&quot;, round(small.mean(), 2))
+print(&quot;large sample mean:&quot;, round(large.mean(), 2))</textarea></div>
+    <div class="out"></div>
+  </div>
+  <div class="note tip"><b>TIP</b>
+    This is the intuition behind why more data helps: larger samples give estimates that sit closer to the truth, more reliably. It's also why a model trained on tiny data is risky.</div>
+
+  <h2 data-n="7.3">Lesson</h2>
+  <h3>Distributions</h3>
+  <p>A distribution describes how values are spread. The <b>normal</b> (bell curve) is the most common in statistics. Knowing a variable's distribution guides which methods and models are appropriate.</p>
+
+  <div class="cell" data-cell>
+    <div class="bar"><span class="lbl">In [ ]:</span> python3
+      <span class="actions">
+        <button class="reset-btn" data-reset>↺ Reset</button>
+        <button class="run-btn" data-run disabled>▶ Run</button>
+      </span></div>
+    <div class="editor"><textarea spellcheck="false">sample = np.random.normal(loc=0, scale=1, size=10000)
+print(&quot;mean :&quot;, round(sample.mean(), 2))
+print(&quot;std  :&quot;, round(sample.std(), 2))
+# ~68% of normal data lies within 1 std of the mean
+within1 = np.mean(np.abs(sample) &lt; 1)
+print(&quot;fraction within 1 std:&quot;, round(within1, 2))</textarea></div>
+    <div class="out"></div>
+  </div>
+
+  <h2 data-n="7.4">Lesson</h2>
+  <h3>Hypothesis testing & p-values</h3>
+  <p>A hypothesis test asks: could this result be due to chance? You compare two groups and get a <b>p-value</b> — the probability of seeing a difference this big if there were truly no difference. Small p (by convention &lt; 0.05) suggests a real effect.</p>
+
+  <div class="cell" data-cell>
+    <div class="bar"><span class="lbl">In [ ]:</span> python3
+      <span class="actions">
+        <button class="reset-btn" data-reset>↺ Reset</button>
+        <button class="run-btn" data-run disabled>▶ Run</button>
+      </span></div>
+    <div class="editor"><textarea spellcheck="false">group_a = np.random.normal(100, 15, 50)
+group_b = np.random.normal(108, 15, 50)   # truly different
+t_stat, p_value = stats.ttest_ind(group_a, group_b)
+print(&quot;group A mean:&quot;, round(group_a.mean(), 1))
+print(&quot;group B mean:&quot;, round(group_b.mean(), 1))
+print(&quot;p-value:&quot;, round(p_value, 4))
+print(&quot;significant at 0.05?&quot;, p_value &lt; 0.05)</textarea></div>
+    <div class="out"></div>
+  </div>
+  <div class="note"><b>READ THIS CAREFULLY</b>
+    A p-value is <em>not</em> the probability your hypothesis is true, and 'not significant' doesn't mean 'no effect' — it means 'not enough evidence here'. Misreading p-values is one of the most common mistakes in data science.</div>
+
+  <h2 data-n="7.5">Lesson</h2>
+  <h3>Confidence intervals</h3>
+  <p>A confidence interval gives a range of plausible values for an estimate, instead of a single number. A 95% CI means: if you repeated the sampling many times, about 95% of such intervals would contain the true value.</p>
+
+  <div class="cell" data-cell>
+    <div class="bar"><span class="lbl">In [ ]:</span> python3
+      <span class="actions">
+        <button class="reset-btn" data-reset>↺ Reset</button>
+        <button class="run-btn" data-run disabled>▶ Run</button>
+      </span></div>
+    <div class="editor"><textarea spellcheck="false">data = np.random.normal(50, 10, 200)
+mean = data.mean()
+sem = stats.sem(data)                  # standard error of the mean
+lo, hi = stats.t.interval(0.95, len(data)-1, loc=mean, scale=sem)
+print(&quot;mean:&quot;, round(mean, 2))
+print(&quot;95% CI: [&quot;, round(lo, 2), &quot;,&quot;, round(hi, 2), &quot;]&quot;)</textarea></div>
+    <div class="out"></div>
+  </div>
+
+  <h2 data-n="7.6">Lesson</h2>
+  <h3>Why this matters for ML</h3>
+  <p>Statistics is how you tell signal from noise. It tells you whether a feature really relates to the target, whether one model truly beats another, and how much to trust a number. Models make predictions; statistics tells you whether to believe them.</p>
+
+  <div class="cell" data-cell>
+    <div class="bar"><span class="lbl">In [ ]:</span> python3
+      <span class="actions">
+        <button class="reset-btn" data-reset>↺ Reset</button>
+        <button class="run-btn" data-run disabled>▶ Run</button>
+      </span></div>
+    <div class="editor"><textarea spellcheck="false"># is model B&#x27;s accuracy really better, or just noise across 5 folds?
+acc_a = np.array([0.81, 0.79, 0.83, 0.80, 0.82])
+acc_b = np.array([0.84, 0.85, 0.83, 0.86, 0.84])
+t, p = stats.ttest_rel(acc_a, acc_b)
+print(&quot;A mean:&quot;, round(acc_a.mean(), 3), &quot; B mean:&quot;, round(acc_b.mean(), 3))
+print(&quot;p-value:&quot;, round(p, 4), &quot;-&gt; B reliably better?&quot; , p &lt; 0.05)</textarea></div>
+    <div class="out"></div>
+  </div>
+
+  <h2 data-n="✎">Exercises</h2>
+  <h3>Practice</h3>
+
+  <div class="exercise">
+    <div class="xh"><span class="t">EX 1</span><h4>Fraction within one std</h4></div>
+    <p class="task">For a standard normal sample, the fraction within 1 std of the mean is about 0.68. Using the seeded sample below, print that fraction rounded to 2 decimals.</p>
+
+  <div class="cell" data-cell data-expect="0.69">
+    <div class="bar"><span class="lbl">In [ ]:</span> python3
+      <span class="actions">
+        <button class="reset-btn" data-reset>↺ Reset</button>
+        <button class="run-btn" data-run disabled>▶ Run &amp; check</button>
+      </span></div>
+    <div class="editor"><textarea spellcheck="false">import numpy as np
+np.random.seed(1)
+s = np.random.normal(0, 1, 10000)
+# print fraction of |s| &lt; 1, rounded to 2 dp</textarea></div>
+    <div class="out"></div>
+  </div>
+    <div class="check"></div>
+    <details class="soln"><summary>Show solution</summary>
+      <p style="font-family:var(--mono);font-size:13px;margin-top:8px;white-space:pre-wrap">import numpy as np
+np.random.seed(1)
+s = np.random.normal(0, 1, 10000)
+print(round(float(np.mean(np.abs(s) &lt; 1)), 2))</p>
+    </details>
+  </div>
+
+  <div class="exercise">
+    <div class="xh"><span class="t">EX 2</span><h4>Read a p-value</h4></div>
+    <p class="task">Two groups are compared with a t-test giving p = 0.03. At the 0.05 threshold, is the difference statistically significant? Print True or False.</p>
+
+  <div class="cell" data-cell data-expect="True">
+    <div class="bar"><span class="lbl">In [ ]:</span> python3
+      <span class="actions">
+        <button class="reset-btn" data-reset>↺ Reset</button>
+        <button class="run-btn" data-run disabled>▶ Run &amp; check</button>
+      </span></div>
+    <div class="editor"><textarea spellcheck="false">p = 0.03
+# print whether p &lt; 0.05</textarea></div>
+    <div class="out"></div>
+  </div>
+    <div class="check"></div>
+    <details class="soln"><summary>Show solution</summary>
+      <p style="font-family:var(--mono);font-size:13px;margin-top:8px;white-space:pre-wrap">p = 0.03
+print(p &lt; 0.05)</p>
+    </details>
+  </div>
+
+  <footer class="nav">
+    <a href="#">← Chapter 06 · Visualization</a>
+    <a class="n" href="#">Chapter 08 · Feature engineering →</a>
+  </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script>
+let pyodide=null, ready=false;
+const statusEl=document.getElementById('status');
+const statusText=document.getElementById('status-text');
+
+async function boot(){
+  try{
+    pyodide = await loadPyodide();
+    // micropip is bundled but not auto-installed in recent Pyodide; load it once here
+    await pyodide.loadPackage("micropip");
+    // route python stdout/stderr so we can capture per-run
+    ready=true;
+    statusEl.classList.add('ready');
+    statusText.textContent='Python 3 ready — edit any cell and press Run.';
+    document.querySelectorAll('[data-run]').forEach(b=>{b.disabled=false;});
+  }catch(e){
+    statusText.textContent='Could not load Python runtime. Check your network/CDN access.';
+  }
+}
+boot();
+
+async function runCell(cell){
+  const code = cell.querySelector('textarea').value;
+  const out  = cell.querySelector('.out');
+  const btn  = cell.querySelector('[data-run]');
+  out.className='out show'; out.textContent='Running…';
+  btn.disabled=true;
+  // capture stdout + stderr
+  let captured='';
+  pyodide.setStdout({batched:(s)=>{captured+=s+"\n";}});
+  pyodide.setStderr({batched:(s)=>{captured+=s+"\n";}});
+  try{
+    await pyodide.runPythonAsync(code);
+    out.className='out show ok';
+    out.innerHTML='<span class="tag">output</span>'+ (captured.trimEnd()||'(no output — use print() to show a value)');
+    gradeMaybe(cell, captured.trimEnd());
+  }catch(err){
+    out.className='out show err';
+    const msg=String(err).split("\n").slice(-6).join("\n");
+    out.innerHTML='<span class="tag">error</span>'+msg;
+  }finally{
+    btn.disabled=false;
+  }
+}
+
+function gradeMaybe(cell, output){
+  const expect = cell.getAttribute('data-expect');
+  if(!expect) return;
+  const check = cell.parentElement.querySelector('.check');
+  if(!check) return;
+  if(output.trim()===expect.trim()){
+    check.className='check pass'; check.textContent='✓ Correct — output matches exactly.';
+  }else{
+    check.className='check fail'; check.textContent='✗ Not yet — expected: '+expect;
+  }
+}
+
+// make a textarea grow to fit its content (so students see all the code)
+function autoGrow(ta){
+  ta.style.height='auto';
+  ta.style.height=(ta.scrollHeight+2)+'px';
+}
+// tell the parent (Moodle iframe) how tall this page is, so it can resize
+function reportHeight(){
+  const h=Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
+  parent.postMessage({type:'lesson-height', height:h}, '*');
+}
+window.addEventListener('load', reportHeight);
+window.addEventListener('resize', reportHeight);
+// re-report whenever content changes size (running a cell, output appearing, editors growing)
+if(window.ResizeObserver){
+  new ResizeObserver(reportHeight).observe(document.body);
+}
+
+// wire buttons + Ctrl/Cmd+Enter to run
+document.querySelectorAll('[data-cell]').forEach(cell=>{
+  const ta=cell.querySelector('textarea');
+  const original=ta.value;
+  autoGrow(ta);                         // size to initial code
+  ta.addEventListener('input',()=>{ autoGrow(ta); });
+  cell.querySelector('[data-run]').addEventListener('click',()=>{ if(ready) runCell(cell); });
+  cell.querySelector('[data-reset]').addEventListener('click',()=>{
+    ta.value=original; autoGrow(ta); cell.querySelector('.out').className='out';
+    const c=cell.parentElement.querySelector('.check'); if(c)c.className='check';
+  });
+  ta.addEventListener('keydown',e=>{
+    if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault(); if(ready)runCell(cell);}
+    if(e.key==='Tab'){e.preventDefault();
+      const s=ta.selectionStart,en=ta.selectionEnd;
+      ta.value=ta.value.slice(0,s)+'    '+ta.value.slice(en);
+      ta.selectionStart=ta.selectionEnd=s+4; autoGrow(ta);}
+  });
+});
+// report again after Python finishes loading (banner change shifts layout)
+const _bootDone=setInterval(()=>{ if(ready){reportHeight(); clearInterval(_bootDone);} }, 500);
+</script>
+</body>
+</html>
