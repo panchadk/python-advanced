@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DS&ML · Ch 16 — Capstone project — Learn to Grow</title>
+<style>
+  :root{
+    --navy:#1e3a5f; --navy-2:#16273f; --gold:#f2c14e; --gold-deep:#e0a92e;
+    --paper:#ffffff; --wash:#f4f6f9; --line:#e2e6ec; --text:#1c2530;
+    --muted:#5f6b7a; --code-bg:#16273f; --code-text:#e8edf4;
+    --run:#2f9e6f; --run-bg:#e7f5ee; --err:#c0392b; --err-bg:#fbeae8;
+    --kw:#f2c14e; --str:#8fd19e; --com:#7d8ba0; --num:#c98ad6; --fn:#7fb0e0;
+    --mono:ui-monospace,"Cascadia Code","JetBrains Mono",Menlo,Consolas,monospace;
+    --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--wash);color:var(--text);font-family:var(--sans);
+    font-size:16px;line-height:1.6}
+  .wrap{max-width:820px;margin:0 auto;padding:0 20px 80px}
+
+  /* runtime status banner */
+  #status{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;
+    background:var(--navy);color:#fff;font-family:var(--mono);font-size:12.5px;
+    padding:9px 16px;border-bottom:3px solid var(--gold)}
+  #status .dot{width:9px;height:9px;border-radius:50%;background:var(--gold);
+    animation:pulse 1.1s infinite}
+  #status.ready .dot{background:var(--run);animation:none}
+  #status.ready{background:var(--navy-2)}
+  @keyframes pulse{50%{opacity:.35}}
+
+  header.ch{background:var(--navy);color:#fff;border-radius:0 0 14px 14px;
+    padding:30px 28px 26px;margin-bottom:8px}
+  header.ch .eyebrow{font-family:var(--mono);font-size:12.5px;color:var(--gold);margin:0 0 8px}
+  header.ch h1{margin:0 0 10px;font-size:30px;line-height:1.12;letter-spacing:-.5px}
+  header.ch p{margin:0;color:#c8d4e2;max-width:60ch;font-size:16px}
+
+  h2{font-size:14px;font-family:var(--mono);color:var(--gold-deep);margin:40px 0 4px;
+    display:flex;align-items:center;gap:10px}
+  h2::before{content:attr(data-n);background:var(--navy);color:#fff;font-size:11.5px;
+    padding:3px 8px;border-radius:5px}
+  h3{font-size:21px;margin:6px 0 10px;letter-spacing:-.3px}
+  p{margin:0 0 14px}
+  code.inl{font-family:var(--mono);background:#eaeef4;padding:1.5px 6px;border-radius:4px;
+    font-size:.87em;color:#a05a06}
+
+  /* editable python cell */
+  .cell{background:var(--paper);border:1px solid var(--line);border-radius:11px;
+    margin:20px 0;overflow:hidden;box-shadow:0 1px 2px rgba(20,30,45,.04)}
+  .cell .bar{display:flex;align-items:center;gap:10px;background:#eef1f6;
+    border-bottom:1px solid var(--line);padding:7px 12px;font-family:var(--mono);
+    font-size:11.5px;color:var(--muted)}
+  .cell .bar .lbl{color:var(--gold-deep)}
+  .cell .bar .actions{margin-left:auto;display:flex;gap:8px}
+  .cell button{font-family:var(--mono);font-size:12px;border:none;border-radius:6px;
+    padding:5px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+  .cell .run-btn{background:var(--run);color:#fff}
+  .cell .run-btn:hover{background:#25835b}
+  .cell .run-btn:disabled{background:#9db4ab;cursor:progress}
+  .cell .reset-btn{background:transparent;color:var(--muted);border:1px solid var(--line)}
+  .cell .reset-btn:hover{border-color:var(--muted);color:var(--text)}
+  .editor{position:relative;font-family:var(--mono);font-size:14px;line-height:1.55}
+  .editor textarea{width:100%;min-height:64px;resize:vertical;border:none;outline:none;overflow:hidden;box-sizing:border-box;
+    padding:14px 16px;background:var(--code-bg);color:var(--code-text);
+    font-family:var(--mono);font-size:14px;line-height:1.55;tab-size:4;white-space:pre}
+  .editor textarea::selection{background:#3a5a86}
+  .out{border-top:1px dashed var(--line);padding:12px 16px;background:#fafbfd;
+    font-family:var(--mono);font-size:13px;white-space:pre-wrap;min-height:0;display:none}
+  .out.show{display:block}
+  .out.ok{color:#243}.out.err{background:var(--err-bg);color:var(--err)}
+  .out .tag{font-family:var(--mono);font-size:10.5px;color:var(--muted);
+    display:block;margin-bottom:5px}
+
+  .note{border-left:3px solid var(--gold);background:#fdf6e3;padding:12px 16px;
+    border-radius:0 8px 8px 0;margin:18px 0}
+  .note b{display:block;font-family:var(--mono);font-size:12px;color:#8a6410;margin-bottom:3px}
+  .note.tip{border-color:var(--run);background:var(--run-bg)}
+  .note.tip b{color:#1c6b48}
+
+  .exercise{border:1.5px solid var(--navy);border-radius:12px;padding:20px 22px;margin:26px 0;background:var(--paper)}
+  .exercise .xh{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .exercise .xh .t{font-family:var(--mono);font-size:11px;background:var(--navy);
+    color:#fff;padding:3px 9px;border-radius:6px}
+  .exercise .xh h4{margin:0;font-size:17px}
+  .exercise .task{margin:8px 0 12px}
+  .check{margin-top:10px;font-family:var(--mono);font-size:12.5px;display:none}
+  .check.pass{display:block;color:var(--run)} .check.fail{display:block;color:var(--err)}
+  details.soln{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px}
+  details.soln summary{font-family:var(--mono);font-size:13px;color:var(--gold-deep);cursor:pointer}
+
+  footer.nav{display:flex;justify-content:space-between;gap:14px;margin-top:50px;
+    border-top:1px solid var(--line);padding-top:20px;font-family:var(--mono);font-size:13px}
+  footer.nav a{color:var(--navy);text-decoration:none;border:1px solid var(--line);
+    border-radius:9px;padding:12px 16px;flex:1}
+  footer.nav a:hover{border-color:var(--navy)}
+  footer.nav a.n{text-align:right}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+
+<body>
+<div id="status"><span class="dot"></span><span id="status-text">Loading Python runtime… first load ~10–15s, then cached.</span></div>
+
+<div class="wrap">
+  <header class="ch">
+    <p class="eyebrow">Data Science & ML · Chapter 16 · Applied & beyond</p>
+    <h1>Capstone project</h1>
+    <p>Time to put it all together. In this capstone you'll run a complete machine-learning project end to end — load data, explore it, engineer features, build a validated model, evaluate it, and save it for reuse — the exact workflow of a real data scientist. Everything runs live; the first cell installs scikit-learn.</p>
+  </header>
+
+  <h2 data-n="16.1">Lesson</h2>
+  <h3>The problem & the data</h3>
+  <p>Our task: predict whether a breast tumor is malignant or benign from cell measurements — a real, high-stakes binary classification problem. Step one of any project: load the data and understand its shape.</p>
+
+  <div class="cell" data-cell>
+    <div class="bar"><span class="lbl">In [ ]:</span> python3
+      <span class="actions">
+        <button class="reset-btn" data-reset>↺ Reset</button>
+        <button class="run-btn" data-run disabled>▶ Run</button>
+      </span></div>
+    <div class="editor"><textarea spellcheck="false">import micropip
+await micropip.install([&quot;scikit-learn&quot;, &quot;numpy&quot;, &quot;pandas&quot;])
+import numpy as np, pandas as pd
+from sklearn.datasets import load_breast_cancer
+
+data = load_breast_cancer()
+X, y = data.data, data.target
+print(&quot;samples:&quot;, X.shape[0], &quot; features:&quot;, X.shape[1])
+print(&quot;target balance:&quot;, np.bincount(y).tolist(), &quot;(0=malignant, 1=benign)&quot;)</textarea></div>
+    <div class="out"></div>
+  </div>
+
+  <h2 data-n="16.2">Lesson</h2>
+  <h3>Explore</h3>
+  <p>A quick look before modeling: are classes balanced? Any obvious scale differences across features? This guides every choice that follows.</p>
+
+  <div class="cell" data-cell>
+    <div class="bar"><span class="lbl">In [ ]:</span> python3
+      <span class="actions">
+        <button class="reset-btn" data-reset>↺ Reset</button>
+        <button class="run-btn" data-run disabled>▶ Run</button>
+      </span></div>
+    <div class="editor"><textarea spellcheck="false">df = pd.DataFrame(X, columns=data.feature_names)
+print(&quot;feature value ranges (first 3):&quot;)
+print(df.iloc[:, :3].describe().loc[[&quot;min&quot;, &quot;max&quot;]].round(1))
+print(&quot;\nclass split:&quot;, round(y.mean(), 3), &quot;fraction benign&quot;)</textarea></div>
+    <div class="out"></div>
+  </div>
+  <div class="note tip"><b>TIP</b>
+    The features are on very different scales, and the classes are only mildly imbalanced. That tells us to scale features, and that accuracy plus recall will both matter (missing a malignant case is costly).</div>
+
+  <h2 data-n="16.3">Lesson</h2>
+  <h3>Split & build a pipeline</h3>
+  <p>We hold out a test set, then build a leak-free pipeline: scale the features, then fit a model. Everything we learned about pipelines and validation comes together here.</p>
+
+  <div class="cell" data-cell>
+    <div class="bar"><span class="lbl">In [ ]:</span> python3
+      <span class="actions">
+        <button class="reset-btn" data-reset>↺ Reset</button>
+        <button class="run-btn" data-run disabled>▶ Run</button>
+      </span></div>
+    <div class="editor"><textarea spellcheck="false">from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import make_pipeline
+from sklearn.ensemble import RandomForestClassifier
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+pipe = make_pipeline(StandardScaler(), RandomForestClassifier(n_estimators=200, random_state=0))
+print(&quot;pipeline built:&quot;, [s[0] for s in pipe.steps])</textarea></div>
+    <div class="out"></div>
+  </div>
+
+  <h2 data-n="16.4">Lesson</h2>
+  <h3>Validate before trusting</h3>
+  <p>Cross-validate on the training data to get an honest performance estimate — before we ever touch the test set.</p>
+
+  <div class="cell" data-cell>
+    <div class="bar"><span class="lbl">In [ ]:</span> python3
+      <span class="actions">
+        <button class="reset-btn" data-reset>↺ Reset</button>
+        <button class="run-btn" data-run disabled>▶ Run</button>
+      </span></div>
+    <div class="editor"><textarea spellcheck="false">from sklearn.model_selection import cross_val_score
+cv = cross_val_score(pipe, X_train, y_train, cv=5)
+print(&quot;CV fold scores:&quot;, np.round(cv, 3).tolist())
+print(&quot;CV mean:&quot;, round(cv.mean(), 3), &quot;+/-&quot;, round(cv.std(), 3))</textarea></div>
+    <div class="out"></div>
+  </div>
+
+  <h2 data-n="16.5">Lesson</h2>
+  <h3>Fit & evaluate on the held-out test set</h3>
+  <p>Now, and only now, we fit on all the training data and evaluate once on the untouched test set — our estimate of real-world performance. We look at accuracy AND recall, because the errors matter differently.</p>
+
+  <div class="cell" data-cell>
+    <div class="bar"><span class="lbl">In [ ]:</span> python3
+      <span class="actions">
+        <button class="reset-btn" data-reset>↺ Reset</button>
+        <button class="run-btn" data-run disabled>▶ Run</button>
+      </span></div>
+    <div class="editor"><textarea spellcheck="false">from sklearn.metrics import accuracy_score, recall_score, confusion_matrix
+pipe.fit(X_train, y_train)
+pred = pipe.predict(X_test)
+print(&quot;test accuracy:&quot;, round(accuracy_score(y_test, pred), 3))
+print(&quot;test recall:  &quot;, round(recall_score(y_test, pred), 3))
+print(&quot;confusion matrix:&quot;)
+print(confusion_matrix(y_test, pred))</textarea></div>
+    <div class="out"></div>
+  </div>
+
+  <h2 data-n="16.6">Lesson</h2>
+  <h3>Save the model for reuse</h3>
+  <p>A trained model is an asset. Persist the whole pipeline (scaler + model together) so it can make predictions later without retraining — this is how models reach production.</p>
+
+  <div class="cell" data-cell>
+    <div class="bar"><span class="lbl">In [ ]:</span> python3
+      <span class="actions">
+        <button class="reset-btn" data-reset>↺ Reset</button>
+        <button class="run-btn" data-run disabled>▶ Run</button>
+      </span></div>
+    <div class="editor"><textarea spellcheck="false">import pickle
+# save the fitted pipeline to bytes (in a real project, to a .pkl file)
+blob = pickle.dumps(pipe)
+print(&quot;serialized pipeline size:&quot;, len(blob), &quot;bytes&quot;)
+
+# load it back and confirm it still predicts
+loaded = pickle.loads(blob)
+print(&quot;reloaded model accuracy:&quot;, round(loaded.score(X_test, y_test), 3))</textarea></div>
+    <div class="out"></div>
+  </div>
+  <div class="note"><b>YOU DID IT</b>
+    You just completed the full lifecycle: <b>ingest → explore → prepare → validate → evaluate → persist</b>. Every real ML project is a variation on this. Wrap it in a function or a script and you have a reusable tool — the goal we set at the very start of the course.</div>
+
+  <h2 data-n="16.7">Lesson</h2>
+  <h3>Where to go next</h3>
+  <p>You now have the core data-science toolkit. From here: enter a Kaggle competition to practice on real problems, go deeper on a domain (NLP, time series, computer vision), or revisit deep learning in Colab. The workflow stays the same — you just change the data and the models.</p>
+
+  <div class="cell" data-cell>
+    <div class="bar"><span class="lbl">In [ ]:</span> python3
+      <span class="actions">
+        <button class="reset-btn" data-reset>↺ Reset</button>
+        <button class="run-btn" data-run disabled>▶ Run</button>
+      </span></div>
+    <div class="editor"><textarea spellcheck="false"># a tiny &quot;predict on new data&quot; demo — the point of saving a model
+new_sample = X_test[:1]
+print(&quot;prediction for one new sample:&quot;, int(loaded.predict(new_sample)[0]),
+      &quot;(0=malignant, 1=benign)&quot;)
+print(&quot;predicted probability benign:&quot;, round(float(loaded.predict_proba(new_sample)[0, 1]), 3))</textarea></div>
+    <div class="out"></div>
+  </div>
+
+  <h2 data-n="✎">Exercises</h2>
+  <h3>Practice</h3>
+
+  <div class="exercise">
+    <div class="xh"><span class="t">EX 1</span><h4>Build and validate a pipeline</h4></div>
+    <p class="task">Build a StandardScaler + RandomForest(n_estimators=200, random_state=0) pipeline and print its 5-fold CV mean on the TRAINING split below, rounded to 3 decimals.</p>
+
+  <div class="cell" data-cell data-expect="0.958">
+    <div class="bar"><span class="lbl">In [ ]:</span> python3
+      <span class="actions">
+        <button class="reset-btn" data-reset>↺ Reset</button>
+        <button class="run-btn" data-run disabled>▶ Run &amp; check</button>
+      </span></div>
+    <div class="editor"><textarea spellcheck="false">from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import make_pipeline
+from sklearn.ensemble import RandomForestClassifier
+X, y = load_breast_cancer(return_X_y=True)
+X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.2, random_state=42)
+# build the pipeline, print round(5-fold CV mean on X_tr, 3)</textarea></div>
+    <div class="out"></div>
+  </div>
+    <div class="check"></div>
+    <details class="soln"><summary>Show solution</summary>
+      <p style="font-family:var(--mono);font-size:13px;margin-top:8px;white-space:pre-wrap">from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import make_pipeline
+from sklearn.ensemble import RandomForestClassifier
+X, y = load_breast_cancer(return_X_y=True)
+X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.2, random_state=42)
+pipe = make_pipeline(StandardScaler(), RandomForestClassifier(n_estimators=200, random_state=0))
+print(round(cross_val_score(pipe, X_tr, y_tr, cv=5).mean(), 3))</p>
+    </details>
+  </div>
+
+  <div class="exercise">
+    <div class="xh"><span class="t">EX 2</span><h4>Evaluate on the test set</h4></div>
+    <p class="task">Fit that pipeline on the training data and print the test-set accuracy rounded to 3 decimals.</p>
+
+  <div class="cell" data-cell data-expect="0.965">
+    <div class="bar"><span class="lbl">In [ ]:</span> python3
+      <span class="actions">
+        <button class="reset-btn" data-reset>↺ Reset</button>
+        <button class="run-btn" data-run disabled>▶ Run &amp; check</button>
+      </span></div>
+    <div class="editor"><textarea spellcheck="false"># using the same split and pipeline, fit on train and print round(test accuracy, 3)</textarea></div>
+    <div class="out"></div>
+  </div>
+    <div class="check"></div>
+    <details class="soln"><summary>Show solution</summary>
+      <p style="font-family:var(--mono);font-size:13px;margin-top:8px;white-space:pre-wrap">from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import make_pipeline
+from sklearn.ensemble import RandomForestClassifier
+X, y = load_breast_cancer(return_X_y=True)
+X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.2, random_state=42)
+pipe = make_pipeline(StandardScaler(), RandomForestClassifier(n_estimators=200, random_state=0)).fit(X_tr, y_tr)
+print(round(pipe.score(X_te, y_te), 3))</p>
+    </details>
+  </div>
+
+  <footer class="nav">
+    <a href="#">← Chapter 15 · Deep learning</a>
+    <a class="n" href="#">Course complete 🎉 →</a>
+  </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script>
+let pyodide=null, ready=false;
+const statusEl=document.getElementById('status');
+const statusText=document.getElementById('status-text');
+
+async function boot(){
+  try{
+    pyodide = await loadPyodide();
+    // micropip is bundled but not auto-installed in recent Pyodide; load it once here
+    await pyodide.loadPackage("micropip");
+    // route python stdout/stderr so we can capture per-run
+    ready=true;
+    statusEl.classList.add('ready');
+    statusText.textContent='Python 3 ready — edit any cell and press Run.';
+    document.querySelectorAll('[data-run]').forEach(b=>{b.disabled=false;});
+  }catch(e){
+    statusText.textContent='Could not load Python runtime. Check your network/CDN access.';
+  }
+}
+boot();
+
+async function runCell(cell){
+  const code = cell.querySelector('textarea').value;
+  const out  = cell.querySelector('.out');
+  const btn  = cell.querySelector('[data-run]');
+  out.className='out show'; out.textContent='Running…';
+  btn.disabled=true;
+  // capture stdout + stderr
+  let captured='';
+  pyodide.setStdout({batched:(s)=>{captured+=s+"\n";}});
+  pyodide.setStderr({batched:(s)=>{captured+=s+"\n";}});
+  try{
+    await pyodide.runPythonAsync(code);
+    out.className='out show ok';
+    out.innerHTML='<span class="tag">output</span>'+ (captured.trimEnd()||'(no output — use print() to show a value)');
+    gradeMaybe(cell, captured.trimEnd());
+  }catch(err){
+    out.className='out show err';
+    const msg=String(err).split("\n").slice(-6).join("\n");
+    out.innerHTML='<span class="tag">error</span>'+msg;
+  }finally{
+    btn.disabled=false;
+  }
+}
+
+function gradeMaybe(cell, output){
+  const expect = cell.getAttribute('data-expect');
+  if(!expect) return;
+  const check = cell.parentElement.querySelector('.check');
+  if(!check) return;
+  if(output.trim()===expect.trim()){
+    check.className='check pass'; check.textContent='✓ Correct — output matches exactly.';
+  }else{
+    check.className='check fail'; check.textContent='✗ Not yet — expected: '+expect;
+  }
+}
+
+// make a textarea grow to fit its content (so students see all the code)
+function autoGrow(ta){
+  ta.style.height='auto';
+  ta.style.height=(ta.scrollHeight+2)+'px';
+}
+// tell the parent (Moodle iframe) how tall this page is, so it can resize
+function reportHeight(){
+  const h=Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
+  parent.postMessage({type:'lesson-height', height:h}, '*');
+}
+window.addEventListener('load', reportHeight);
+window.addEventListener('resize', reportHeight);
+// re-report whenever content changes size (running a cell, output appearing, editors growing)
+if(window.ResizeObserver){
+  new ResizeObserver(reportHeight).observe(document.body);
+}
+
+// wire buttons + Ctrl/Cmd+Enter to run
+document.querySelectorAll('[data-cell]').forEach(cell=>{
+  const ta=cell.querySelector('textarea');
+  const original=ta.value;
+  autoGrow(ta);                         // size to initial code
+  ta.addEventListener('input',()=>{ autoGrow(ta); });
+  cell.querySelector('[data-run]').addEventListener('click',()=>{ if(ready) runCell(cell); });
+  cell.querySelector('[data-reset]').addEventListener('click',()=>{
+    ta.value=original; autoGrow(ta); cell.querySelector('.out').className='out';
+    const c=cell.parentElement.querySelector('.check'); if(c)c.className='check';
+  });
+  ta.addEventListener('keydown',e=>{
+    if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault(); if(ready)runCell(cell);}
+    if(e.key==='Tab'){e.preventDefault();
+      const s=ta.selectionStart,en=ta.selectionEnd;
+      ta.value=ta.value.slice(0,s)+'    '+ta.value.slice(en);
+      ta.selectionStart=ta.selectionEnd=s+4; autoGrow(ta);}
+  });
+});
+// report again after Python finishes loading (banner change shifts layout)
+const _bootDone=setInterval(()=>{ if(ready){reportHeight(); clearInterval(_bootDone);} }, 500);
+</script>
+</body>
+</html>

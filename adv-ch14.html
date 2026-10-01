@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DS&ML · Ch 14 — Unsupervised learning — Learn to Grow</title>
+<style>
+  :root{
+    --navy:#1e3a5f; --navy-2:#16273f; --gold:#f2c14e; --gold-deep:#e0a92e;
+    --paper:#ffffff; --wash:#f4f6f9; --line:#e2e6ec; --text:#1c2530;
+    --muted:#5f6b7a; --code-bg:#16273f; --code-text:#e8edf4;
+    --run:#2f9e6f; --run-bg:#e7f5ee; --err:#c0392b; --err-bg:#fbeae8;
+    --kw:#f2c14e; --str:#8fd19e; --com:#7d8ba0; --num:#c98ad6; --fn:#7fb0e0;
+    --mono:ui-monospace,"Cascadia Code","JetBrains Mono",Menlo,Consolas,monospace;
+    --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--wash);color:var(--text);font-family:var(--sans);
+    font-size:16px;line-height:1.6}
+  .wrap{max-width:820px;margin:0 auto;padding:0 20px 80px}
+
+  /* runtime status banner */
+  #status{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;
+    background:var(--navy);color:#fff;font-family:var(--mono);font-size:12.5px;
+    padding:9px 16px;border-bottom:3px solid var(--gold)}
+  #status .dot{width:9px;height:9px;border-radius:50%;background:var(--gold);
+    animation:pulse 1.1s infinite}
+  #status.ready .dot{background:var(--run);animation:none}
+  #status.ready{background:var(--navy-2)}
+  @keyframes pulse{50%{opacity:.35}}
+
+  header.ch{background:var(--navy);color:#fff;border-radius:0 0 14px 14px;
+    padding:30px 28px 26px;margin-bottom:8px}
+  header.ch .eyebrow{font-family:var(--mono);font-size:12.5px;color:var(--gold);margin:0 0 8px}
+  header.ch h1{margin:0 0 10px;font-size:30px;line-height:1.12;letter-spacing:-.5px}
+  header.ch p{margin:0;color:#c8d4e2;max-width:60ch;font-size:16px}
+
+  h2{font-size:14px;font-family:var(--mono);color:var(--gold-deep);margin:40px 0 4px;
+    display:flex;align-items:center;gap:10px}
+  h2::before{content:attr(data-n);background:var(--navy);color:#fff;font-size:11.5px;
+    padding:3px 8px;border-radius:5px}
+  h3{font-size:21px;margin:6px 0 10px;letter-spacing:-.3px}
+  p{margin:0 0 14px}
+  code.inl{font-family:var(--mono);background:#eaeef4;padding:1.5px 6px;border-radius:4px;
+    font-size:.87em;color:#a05a06}
+
+  /* editable python cell */
+  .cell{background:var(--paper);border:1px solid var(--line);border-radius:11px;
+    margin:20px 0;overflow:hidden;box-shadow:0 1px 2px rgba(20,30,45,.04)}
+  .cell .bar{display:flex;align-items:center;gap:10px;background:#eef1f6;
+    border-bottom:1px solid var(--line);padding:7px 12px;font-family:var(--mono);
+    font-size:11.5px;color:var(--muted)}
+  .cell .bar .lbl{color:var(--gold-deep)}
+  .cell .bar .actions{margin-left:auto;display:flex;gap:8px}
+  .cell button{font-family:var(--mono);font-size:12px;border:none;border-radius:6px;
+    padding:5px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+  .cell .run-btn{background:var(--run);color:#fff}
+  .cell .run-btn:hover{background:#25835b}
+  .cell .run-btn:disabled{background:#9db4ab;cursor:progress}
+  .cell .reset-btn{background:transparent;color:var(--muted);border:1px solid var(--line)}
+  .cell .reset-btn:hover{border-color:var(--muted);color:var(--text)}
+  .editor{position:relative;font-family:var(--mono);font-size:14px;line-height:1.55}
+  .editor textarea{width:100%;min-height:64px;resize:vertical;border:none;outline:none;overflow:hidden;box-sizing:border-box;
+    padding:14px 16px;background:var(--code-bg);color:var(--code-text);
+    font-family:var(--mono);font-size:14px;line-height:1.55;tab-size:4;white-space:pre}
+  .editor textarea::selection{background:#3a5a86}
+  .out{border-top:1px dashed var(--line);padding:12px 16px;background:#fafbfd;
+    font-family:var(--mono);font-size:13px;white-space:pre-wrap;min-height:0;display:none}
+  .out.show{display:block}
+  .out.ok{color:#243}.out.err{background:var(--err-bg);color:var(--err)}
+  .out .tag{font-family:var(--mono);font-size:10.5px;color:var(--muted);
+    display:block;margin-bottom:5px}
+
+  .note{border-left:3px solid var(--gold);background:#fdf6e3;padding:12px 16px;
+    border-radius:0 8px 8px 0;margin:18px 0}
+  .note b{display:block;font-family:var(--mono);font-size:12px;color:#8a6410;margin-bottom:3px}
+  .note.tip{border-color:var(--run);background:var(--run-bg)}
+  .note.tip b{color:#1c6b48}
+
+  .exercise{border:1.5px solid var(--navy);border-radius:12px;padding:20px 22px;margin:26px 0;background:var(--paper)}
+  .exercise .xh{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .exercise .xh .t{font-family:var(--mono);font-size:11px;background:var(--navy);
+    color:#fff;padding:3px 9px;border-radius:6px}
+  .exercise .xh h4{margin:0;font-size:17px}
+  .exercise .task{margin:8px 0 12px}
+  .check{margin-top:10px;font-family:var(--mono);font-size:12.5px;display:none}
+  .check.pass{display:block;color:var(--run)} .check.fail{display:block;color:var(--err)}
+  details.soln{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px}
+  details.soln summary{font-family:var(--mono);font-size:13px;color:var(--gold-deep);cursor:pointer}
+
+  footer.nav{display:flex;justify-content:space-between;gap:14px;margin-top:50px;
+    border-top:1px solid var(--line);padding-top:20px;font-family:var(--mono);font-size:13px}
+  footer.nav a{color:var(--navy);text-decoration:none;border:1px solid var(--line);
+    border-radius:9px;padding:12px 16px;flex:1}
+  footer.nav a:hover{border-color:var(--navy)}
+  footer.nav a.n{text-align:right}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+
+<body>
+<div id="status"><span class="dot"></span><span id="status-text">Loading Python runtime… first load ~10–15s, then cached.</span></div>
+
+<div class="wrap">
+  <header class="ch">
+    <p class="eyebrow">Data Science & ML · Chapter 14 · Machine learning core</p>
+    <h1>Unsupervised learning</h1>
+    <p>So far every model learned from labelled answers. Unsupervised learning finds structure in data with no labels at all — grouping similar items (clustering) and compressing many features into a few (dimensionality reduction). The first cell installs scikit-learn; every cell runs live.</p>
+  </header>
+
+  <h2 data-n="14.1">Lesson</h2>
+  <h3>Setup</h3>
+  <p>Load scikit-learn and the iris features — we'll ignore the labels to simulate unlabelled data. Run once.</p>
+
+  <div class="cell" data-cell>
+    <div class="bar"><span class="lbl">In [ ]:</span> python3
+      <span class="actions">
+        <button class="reset-btn" data-reset>↺ Reset</button>
+        <button class="run-btn" data-run disabled>▶ Run</button>
+      </span></div>
+    <div class="editor"><textarea spellcheck="false">import micropip
+await micropip.install([&quot;scikit-learn&quot;, &quot;numpy&quot;])
+import numpy as np
+from sklearn.datasets import load_iris
+X, y = load_iris(return_X_y=True)   # we will mostly ignore y
+print(&quot;data shape:&quot;, X.shape)</textarea></div>
+    <div class="out"></div>
+  </div>
+
+  <h2 data-n="14.2">Lesson</h2>
+  <h3>K-means clustering</h3>
+  <p>K-means groups data into k clusters by repeatedly assigning points to the nearest center and moving the centers to the mean of their points. You choose k; the algorithm finds the groupings.</p>
+
+  <div class="cell" data-cell>
+    <div class="bar"><span class="lbl">In [ ]:</span> python3
+      <span class="actions">
+        <button class="reset-btn" data-reset>↺ Reset</button>
+        <button class="run-btn" data-run disabled>▶ Run</button>
+      </span></div>
+    <div class="editor"><textarea spellcheck="false">from sklearn.cluster import KMeans
+km = KMeans(n_clusters=3, random_state=0, n_init=10)
+labels = km.fit_predict(X)
+print(&quot;cluster sizes:&quot;, np.bincount(labels).tolist())
+print(&quot;centers shape:&quot;, km.cluster_centers_.shape)</textarea></div>
+    <div class="out"></div>
+  </div>
+  <div class="note tip"><b>TIP</b>
+    K-means needs you to pick k in advance, and it assumes roughly round, similar-sized clusters. When you don't know k, the 'elbow method' (plotting inertia vs k) helps you choose.</div>
+
+  <h2 data-n="14.3">Lesson</h2>
+  <h3>Evaluating clusters without labels</h3>
+  <p>With no ground truth, you judge clusters by their <em>shape</em>. The silhouette score (−1 to 1) measures how tight and well-separated the clusters are — higher is better.</p>
+
+  <div class="cell" data-cell>
+    <div class="bar"><span class="lbl">In [ ]:</span> python3
+      <span class="actions">
+        <button class="reset-btn" data-reset>↺ Reset</button>
+        <button class="run-btn" data-run disabled>▶ Run</button>
+      </span></div>
+    <div class="editor"><textarea spellcheck="false">from sklearn.metrics import silhouette_score
+score = silhouette_score(X, labels)
+print(&quot;silhouette score:&quot;, round(score, 3))</textarea></div>
+    <div class="out"></div>
+  </div>
+
+  <h2 data-n="14.4">Lesson</h2>
+  <h3>PCA: dimensionality reduction</h3>
+  <p>Principal Component Analysis compresses many correlated features into a few 'principal components' that capture most of the variation. Great for visualization and for speeding up models.</p>
+
+  <div class="cell" data-cell>
+    <div class="bar"><span class="lbl">In [ ]:</span> python3
+      <span class="actions">
+        <button class="reset-btn" data-reset>↺ Reset</button>
+        <button class="run-btn" data-run disabled>▶ Run</button>
+      </span></div>
+    <div class="editor"><textarea spellcheck="false">from sklearn.decomposition import PCA
+pca = PCA(n_components=2)
+X2 = pca.fit_transform(X)
+print(&quot;reduced shape:&quot;, X2.shape)
+print(&quot;variance explained by 2 components:&quot;,
+      np.round(pca.explained_variance_ratio_, 3).tolist())
+print(&quot;total:&quot;, round(pca.explained_variance_ratio_.sum(), 3))</textarea></div>
+    <div class="out"></div>
+  </div>
+  <div class="note"><b>WHY IT MATTERS</b>
+    Those two components capture the vast majority of the variance in four original features — which is why you can often plot high-dimensional data in 2-D and still see its structure.</div>
+
+  <h2 data-n="14.5">Lesson</h2>
+  <h3>Putting it together</h3>
+  <p>A common pipeline: reduce dimensions with PCA, then cluster in the smaller space. Faster, and often cleaner clusters because noise is stripped away.</p>
+
+  <div class="cell" data-cell>
+    <div class="bar"><span class="lbl">In [ ]:</span> python3
+      <span class="actions">
+        <button class="reset-btn" data-reset>↺ Reset</button>
+        <button class="run-btn" data-run disabled>▶ Run</button>
+      </span></div>
+    <div class="editor"><textarea spellcheck="false">from sklearn.cluster import KMeans
+km2 = KMeans(n_clusters=3, random_state=0, n_init=10)
+labels2 = km2.fit_predict(X2)   # cluster on the 2-D PCA data
+print(&quot;cluster sizes in PCA space:&quot;, np.bincount(labels2).tolist())</textarea></div>
+    <div class="out"></div>
+  </div>
+
+  <h2 data-n="14.6">Lesson</h2>
+  <h3>When to use unsupervised learning</h3>
+  <p>Reach for it when you have no labels but want to understand your data: customer segments, topic groups, anomaly detection, or just a 2-D map of something high-dimensional. It's exploration and compression, not prediction.</p>
+
+  <div class="cell" data-cell>
+    <div class="bar"><span class="lbl">In [ ]:</span> python3
+      <span class="actions">
+        <button class="reset-btn" data-reset>↺ Reset</button>
+        <button class="run-btn" data-run disabled>▶ Run</button>
+      </span></div>
+    <div class="editor"><textarea spellcheck="false"># how well do k-means clusters line up with the real species? (we peek at y just to check)
+from sklearn.metrics import adjusted_rand_score
+print(&quot;agreement with true species (ARI):&quot;, round(adjusted_rand_score(y, labels), 3))</textarea></div>
+    <div class="out"></div>
+  </div>
+
+  <h2 data-n="✎">Exercises</h2>
+  <h3>Practice</h3>
+
+  <div class="exercise">
+    <div class="xh"><span class="t">EX 1</span><h4>Cluster into 3 groups</h4></div>
+    <p class="task">Run K-means with 3 clusters (random_state=0, n_init=10) on the iris data and print the three cluster sizes as a list.</p>
+
+  <div class="cell" data-cell data-expect="[62, 50, 38]">
+    <div class="bar"><span class="lbl">In [ ]:</span> python3
+      <span class="actions">
+        <button class="reset-btn" data-reset>↺ Reset</button>
+        <button class="run-btn" data-run disabled>▶ Run &amp; check</button>
+      </span></div>
+    <div class="editor"><textarea spellcheck="false">from sklearn.datasets import load_iris
+from sklearn.cluster import KMeans
+import numpy as np
+X, y = load_iris(return_X_y=True)
+# fit KMeans(3), print np.bincount(labels).tolist()  -&gt;  [62, 50, 38]</textarea></div>
+    <div class="out"></div>
+  </div>
+    <div class="check"></div>
+    <details class="soln"><summary>Show solution</summary>
+      <p style="font-family:var(--mono);font-size:13px;margin-top:8px;white-space:pre-wrap">from sklearn.datasets import load_iris
+from sklearn.cluster import KMeans
+import numpy as np
+X, y = load_iris(return_X_y=True)
+labels = KMeans(n_clusters=3, random_state=0, n_init=10).fit_predict(X)
+print(np.bincount(labels).tolist())</p>
+    </details>
+  </div>
+
+  <div class="exercise">
+    <div class="xh"><span class="t">EX 2</span><h4>Variance captured by PCA</h4></div>
+    <p class="task">Reduce the iris data to 2 components and print the total fraction of variance explained, rounded to 3 decimals.</p>
+
+  <div class="cell" data-cell data-expect="0.978">
+    <div class="bar"><span class="lbl">In [ ]:</span> python3
+      <span class="actions">
+        <button class="reset-btn" data-reset>↺ Reset</button>
+        <button class="run-btn" data-run disabled>▶ Run &amp; check</button>
+      </span></div>
+    <div class="editor"><textarea spellcheck="false">from sklearn.datasets import load_iris
+from sklearn.decomposition import PCA
+X, y = load_iris(return_X_y=True)
+# fit PCA(2), print round(total explained variance ratio, 3)</textarea></div>
+    <div class="out"></div>
+  </div>
+    <div class="check"></div>
+    <details class="soln"><summary>Show solution</summary>
+      <p style="font-family:var(--mono);font-size:13px;margin-top:8px;white-space:pre-wrap">from sklearn.datasets import load_iris
+from sklearn.decomposition import PCA
+X, y = load_iris(return_X_y=True)
+p = PCA(n_components=2).fit(X)
+print(round(p.explained_variance_ratio_.sum(), 3))</p>
+    </details>
+  </div>
+
+  <footer class="nav">
+    <a href="#">← Chapter 13 · Ensembles</a>
+    <a class="n" href="#">Chapter 15 · Intro to deep learning →</a>
+  </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script>
+let pyodide=null, ready=false;
+const statusEl=document.getElementById('status');
+const statusText=document.getElementById('status-text');
+
+async function boot(){
+  try{
+    pyodide = await loadPyodide();
+    // micropip is bundled but not auto-installed in recent Pyodide; load it once here
+    await pyodide.loadPackage("micropip");
+    // route python stdout/stderr so we can capture per-run
+    ready=true;
+    statusEl.classList.add('ready');
+    statusText.textContent='Python 3 ready — edit any cell and press Run.';
+    document.querySelectorAll('[data-run]').forEach(b=>{b.disabled=false;});
+  }catch(e){
+    statusText.textContent='Could not load Python runtime. Check your network/CDN access.';
+  }
+}
+boot();
+
+async function runCell(cell){
+  const code = cell.querySelector('textarea').value;
+  const out  = cell.querySelector('.out');
+  const btn  = cell.querySelector('[data-run]');
+  out.className='out show'; out.textContent='Running…';
+  btn.disabled=true;
+  // capture stdout + stderr
+  let captured='';
+  pyodide.setStdout({batched:(s)=>{captured+=s+"\n";}});
+  pyodide.setStderr({batched:(s)=>{captured+=s+"\n";}});
+  try{
+    await pyodide.runPythonAsync(code);
+    out.className='out show ok';
+    out.innerHTML='<span class="tag">output</span>'+ (captured.trimEnd()||'(no output — use print() to show a value)');
+    gradeMaybe(cell, captured.trimEnd());
+  }catch(err){
+    out.className='out show err';
+    const msg=String(err).split("\n").slice(-6).join("\n");
+    out.innerHTML='<span class="tag">error</span>'+msg;
+  }finally{
+    btn.disabled=false;
+  }
+}
+
+function gradeMaybe(cell, output){
+  const expect = cell.getAttribute('data-expect');
+  if(!expect) return;
+  const check = cell.parentElement.querySelector('.check');
+  if(!check) return;
+  if(output.trim()===expect.trim()){
+    check.className='check pass'; check.textContent='✓ Correct — output matches exactly.';
+  }else{
+    check.className='check fail'; check.textContent='✗ Not yet — expected: '+expect;
+  }
+}
+
+// make a textarea grow to fit its content (so students see all the code)
+function autoGrow(ta){
+  ta.style.height='auto';
+  ta.style.height=(ta.scrollHeight+2)+'px';
+}
+// tell the parent (Moodle iframe) how tall this page is, so it can resize
+function reportHeight(){
+  const h=Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
+  parent.postMessage({type:'lesson-height', height:h}, '*');
+}
+window.addEventListener('load', reportHeight);
+window.addEventListener('resize', reportHeight);
+// re-report whenever content changes size (running a cell, output appearing, editors growing)
+if(window.ResizeObserver){
+  new ResizeObserver(reportHeight).observe(document.body);
+}
+
+// wire buttons + Ctrl/Cmd+Enter to run
+document.querySelectorAll('[data-cell]').forEach(cell=>{
+  const ta=cell.querySelector('textarea');
+  const original=ta.value;
+  autoGrow(ta);                         // size to initial code
+  ta.addEventListener('input',()=>{ autoGrow(ta); });
+  cell.querySelector('[data-run]').addEventListener('click',()=>{ if(ready) runCell(cell); });
+  cell.querySelector('[data-reset]').addEventListener('click',()=>{
+    ta.value=original; autoGrow(ta); cell.querySelector('.out').className='out';
+    const c=cell.parentElement.querySelector('.check'); if(c)c.className='check';
+  });
+  ta.addEventListener('keydown',e=>{
+    if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault(); if(ready)runCell(cell);}
+    if(e.key==='Tab'){e.preventDefault();
+      const s=ta.selectionStart,en=ta.selectionEnd;
+      ta.value=ta.value.slice(0,s)+'    '+ta.value.slice(en);
+      ta.selectionStart=ta.selectionEnd=s+4; autoGrow(ta);}
+  });
+});
+// report again after Python finishes loading (banner change shifts layout)
+const _bootDone=setInterval(()=>{ if(ready){reportHeight(); clearInterval(_bootDone);} }, 500);
+</script>
+</body>
+</html>
