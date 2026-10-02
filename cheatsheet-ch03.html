@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ch 3 Cheat Sheet — pandas mastery II</title>
+<style>
+:root{--navy:#1e3a5f;--navy2:#16273f;--gold:#f2c14e;--goldd:#e0a92e;--ink:#1c2530;
+ --muted:#5f6b7a;--wash:#f4f6f9;--line:#e2e6ec;--code:#16273f;--codetx:#e8edf4;
+ --mono:ui-monospace,"Cascadia Code","JetBrains Mono",Menlo,Consolas,monospace;
+ --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--wash);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5}
+.wrap{max-width:900px;margin:0 auto;padding:0 20px 60px}
+header.cs{background:var(--navy);color:#fff;border-radius:0 0 14px 14px;padding:22px 26px;margin-bottom:22px}
+header.cs .eyebrow{font-family:var(--mono);font-size:12px;color:var(--gold);margin:0 0 6px;letter-spacing:1px}
+header.cs h1{margin:0;font-size:26px}
+header.cs p{margin:6px 0 0;color:#c8d4e2;font-size:14px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:680px){.grid{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid var(--line);border-radius:11px;padding:14px 16px;break-inside:avoid}
+.card h3{margin:0 0 10px;font-size:15px;color:var(--navy);border-bottom:2px solid var(--gold);
+ padding-bottom:5px;display:inline-block}
+.row{margin:0 0 9px}
+.row code{display:block;font-family:var(--mono);font-size:12.5px;background:var(--code);color:var(--codetx);
+ padding:7px 9px;border-radius:6px;white-space:pre-wrap;word-break:break-word}
+.row .d{font-size:12.5px;color:var(--muted);margin-top:3px}
+.concept{background:#fdf6e3;border-left:3px solid var(--gold);border-radius:0 8px 8px 0;padding:10px 13px;margin:0 0 9px}
+.concept b{color:#8a6410;font-size:13px}
+.concept p{margin:3px 0 0;font-size:13px}
+.full{grid-column:1 / -1}
+.print-hint{text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);margin:18px 0 0}
+@media print{body{background:#fff}header.cs{border-radius:0}.print-hint{display:none}
+ .card{border-color:#ccc}}
+</style></head><body>
+<div class="wrap">
+<header class="cs">
+  <p class="eyebrow">DATA SCIENCE & ML · CHAPTER 3 · DATA FOUNDATIONS · CHEAT SHEET</p>
+  <h1>pandas mastery II</h1>
+  <p>groupby, pivot, merge, reshape, dates</p>
+</header>
+<div class="grid">
+<div class="card"><h3>groupby</h3><div class="row"><code>df.groupby(&#x27;k&#x27;)[&#x27;v&#x27;].sum()</code><div class="d">sum per group</div></div><div class="row"><code>df.groupby(&#x27;k&#x27;).agg(
+  tot=(&#x27;v&#x27;,&#x27;sum&#x27;),
+  avg=(&#x27;v&#x27;,&#x27;mean&#x27;))</code><div class="d">multi-aggregation</div></div><div class="row"><code>df.groupby(&#x27;k&#x27;).size()</code><div class="d">rows per group</div></div></div><div class="card"><h3>Pivot</h3><div class="row"><code>df.pivot_table(
+  values=&#x27;v&#x27;, index=&#x27;r&#x27;,
+  columns=&#x27;c&#x27;, aggfunc=&#x27;sum&#x27;)</code><div class="d">grid layout</div></div></div><div class="card"><h3>Merge / join</h3><div class="row"><code>a.merge(b, on=&#x27;key&#x27;)</code><div class="d">join on column</div></div><div class="row"><code>how=&#x27;left&#x27;</code><div class="d">keep all left rows</div></div><div class="row"><code>how=&#x27;inner&#x27;</code><div class="d">matches only</div></div><div class="row"><code>how=&#x27;outer&#x27;</code><div class="d">keep everything</div></div></div><div class="card"><h3>Reshape</h3><div class="row"><code>df.melt(id_vars=&#x27;id&#x27;)</code><div class="d">wide -&gt; long</div></div><div class="row"><code>df.pivot(index=, columns=)</code><div class="d">long -&gt; wide</div></div></div><div class="card"><h3>Dates</h3><div class="row"><code>pd.to_datetime(df[&#x27;d&#x27;])</code><div class="d">text -&gt; datetime</div></div><div class="row"><code>s.dt.month  s.dt.weekday</code><div class="d">extract parts</div></div><div class="row"><code>df.groupby(df.d.dt.month)</code><div class="d">group by time</div></div></div><div class="concept"><b>Most-used move</b><p>df.groupby(key)[col].agg(...) answers almost every &#x27;what&#x27;s the X per Y?&#x27; question.</p></div>
+</div>
+<p class="print-hint">Tip: press Ctrl/Cmd + P and choose "Save as PDF" to keep this cheat sheet.</p>
+</div></body></html>

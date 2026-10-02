@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ch 10 Cheat Sheet — Regression</title>
+<style>
+:root{--navy:#1e3a5f;--navy2:#16273f;--gold:#f2c14e;--goldd:#e0a92e;--ink:#1c2530;
+ --muted:#5f6b7a;--wash:#f4f6f9;--line:#e2e6ec;--code:#16273f;--codetx:#e8edf4;
+ --mono:ui-monospace,"Cascadia Code","JetBrains Mono",Menlo,Consolas,monospace;
+ --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--wash);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5}
+.wrap{max-width:900px;margin:0 auto;padding:0 20px 60px}
+header.cs{background:var(--navy);color:#fff;border-radius:0 0 14px 14px;padding:22px 26px;margin-bottom:22px}
+header.cs .eyebrow{font-family:var(--mono);font-size:12px;color:var(--gold);margin:0 0 6px;letter-spacing:1px}
+header.cs h1{margin:0;font-size:26px}
+header.cs p{margin:6px 0 0;color:#c8d4e2;font-size:14px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:680px){.grid{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid var(--line);border-radius:11px;padding:14px 16px;break-inside:avoid}
+.card h3{margin:0 0 10px;font-size:15px;color:var(--navy);border-bottom:2px solid var(--gold);
+ padding-bottom:5px;display:inline-block}
+.row{margin:0 0 9px}
+.row code{display:block;font-family:var(--mono);font-size:12.5px;background:var(--code);color:var(--codetx);
+ padding:7px 9px;border-radius:6px;white-space:pre-wrap;word-break:break-word}
+.row .d{font-size:12.5px;color:var(--muted);margin-top:3px}
+.concept{background:#fdf6e3;border-left:3px solid var(--gold);border-radius:0 8px 8px 0;padding:10px 13px;margin:0 0 9px}
+.concept b{color:#8a6410;font-size:13px}
+.concept p{margin:3px 0 0;font-size:13px}
+.full{grid-column:1 / -1}
+.print-hint{text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);margin:18px 0 0}
+@media print{body{background:#fff}header.cs{border-radius:0}.print-hint{display:none}
+ .card{border-color:#ccc}}
+</style></head><body>
+<div class="wrap">
+<header class="cs">
+  <p class="eyebrow">DATA SCIENCE & ML · CHAPTER 10 · MACHINE LEARNING CORE · CHEAT SHEET</p>
+  <h1>Regression</h1>
+  <p>Linear, polynomial, regularization, metrics</p>
+</header>
+<div class="grid">
+<div class="card"><h3>Linear regression</h3><div class="row"><code>from sklearn.linear_model import LinearRegression</code></div><div class="row"><code>LinearRegression().fit(X_tr,y_tr)</code></div></div><div class="card"><h3>Metrics</h3><div class="row"><code>from sklearn.metrics import mean_squared_error, r2_score</code></div><div class="row"><code>mean_squared_error(y,p)**0.5</code><div class="d">RMSE (target units; lower better)</div></div><div class="row"><code>r2_score(y, p)</code><div class="d">R2 (0..1; higher better)</div></div></div><div class="card"><h3>Polynomial</h3><div class="row"><code>from sklearn.preprocessing import PolynomialFeatures</code></div><div class="row"><code>make_pipeline(
+  PolynomialFeatures(2),
+  LinearRegression())</code><div class="d">fit curves</div></div></div><div class="card"><h3>Regularization</h3><div class="row"><code>Ridge(alpha=1.0)</code><div class="d">shrinks coefficients</div></div><div class="row"><code>Lasso(alpha=0.1)</code><div class="d">can zero some out (selects)</div></div><div class="row"><code>higher alpha</code><div class="d">= simpler model</div></div></div><div class="concept"><b>Bias–variance</b><p>Too simple underfits; too complex (high-degree) overfits. Regularization fights overfitting.</p></div>
+</div>
+<p class="print-hint">Tip: press Ctrl/Cmd + P and choose "Save as PDF" to keep this cheat sheet.</p>
+</div></body></html>

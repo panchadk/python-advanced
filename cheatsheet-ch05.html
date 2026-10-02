@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ch 5 Cheat Sheet — Exploratory data analysis</title>
+<style>
+:root{--navy:#1e3a5f;--navy2:#16273f;--gold:#f2c14e;--goldd:#e0a92e;--ink:#1c2530;
+ --muted:#5f6b7a;--wash:#f4f6f9;--line:#e2e6ec;--code:#16273f;--codetx:#e8edf4;
+ --mono:ui-monospace,"Cascadia Code","JetBrains Mono",Menlo,Consolas,monospace;
+ --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--wash);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5}
+.wrap{max-width:900px;margin:0 auto;padding:0 20px 60px}
+header.cs{background:var(--navy);color:#fff;border-radius:0 0 14px 14px;padding:22px 26px;margin-bottom:22px}
+header.cs .eyebrow{font-family:var(--mono);font-size:12px;color:var(--gold);margin:0 0 6px;letter-spacing:1px}
+header.cs h1{margin:0;font-size:26px}
+header.cs p{margin:6px 0 0;color:#c8d4e2;font-size:14px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:680px){.grid{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid var(--line);border-radius:11px;padding:14px 16px;break-inside:avoid}
+.card h3{margin:0 0 10px;font-size:15px;color:var(--navy);border-bottom:2px solid var(--gold);
+ padding-bottom:5px;display:inline-block}
+.row{margin:0 0 9px}
+.row code{display:block;font-family:var(--mono);font-size:12.5px;background:var(--code);color:var(--codetx);
+ padding:7px 9px;border-radius:6px;white-space:pre-wrap;word-break:break-word}
+.row .d{font-size:12.5px;color:var(--muted);margin-top:3px}
+.concept{background:#fdf6e3;border-left:3px solid var(--gold);border-radius:0 8px 8px 0;padding:10px 13px;margin:0 0 9px}
+.concept b{color:#8a6410;font-size:13px}
+.concept p{margin:3px 0 0;font-size:13px}
+.full{grid-column:1 / -1}
+.print-hint{text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);margin:18px 0 0}
+@media print{body{background:#fff}header.cs{border-radius:0}.print-hint{display:none}
+ .card{border-color:#ccc}}
+</style></head><body>
+<div class="wrap">
+<header class="cs">
+  <p class="eyebrow">DATA SCIENCE & ML · CHAPTER 5 · EXPLORATION &AMP; STATISTICS · CHEAT SHEET</p>
+  <h1>Exploratory data analysis</h1>
+  <p>First look, summaries, distributions, correlation</p>
+</header>
+<div class="grid">
+<div class="card"><h3>First look</h3><div class="row"><code>df.shape  df.head()</code><div class="d">size &amp; sample</div></div><div class="row"><code>df.columns.tolist()</code><div class="d">column names</div></div></div><div class="card"><h3>Summaries</h3><div class="row"><code>df.describe()</code><div class="d">count/mean/std/quartiles</div></div><div class="row"><code>s.mean() s.median() s.std()</code><div class="d">central tendency &amp; spread</div></div><div class="row"><code>s.min(), s.max()</code><div class="d">range</div></div></div><div class="card"><h3>Correlation</h3><div class="row"><code>df.corr()</code><div class="d">full matrix (-1..1)</div></div><div class="row"><code>df.a.corr(df.b)</code><div class="d">one pair</div></div></div><div class="card"><h3>Group comparison</h3><div class="row"><code>df.groupby(&#x27;g&#x27;)[[&#x27;a&#x27;,&#x27;b&#x27;]].mean()</code><div class="d">metric per group</div></div></div><div class="card"><h3>Sanity checks</h3><div class="row"><code>df.isna().sum()</code><div class="d">missing values</div></div><div class="row"><code>df.duplicated().sum()</code><div class="d">duplicate rows</div></div></div><div class="concept"><b>Reading skew</b><p>If mean &gt;&gt; median, data is right-skewed (a few big values). Correlation is not causation.</p></div><div class="concept"><b>EDA mindset</b><p>Stay curious: look, ask &#x27;does this make sense?&#x27;, and follow the surprises before modeling.</p></div>
+</div>
+<p class="print-hint">Tip: press Ctrl/Cmd + P and choose "Save as PDF" to keep this cheat sheet.</p>
+</div></body></html>

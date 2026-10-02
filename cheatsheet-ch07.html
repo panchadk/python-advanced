@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ch 7 Cheat Sheet — Statistics for ML</title>
+<style>
+:root{--navy:#1e3a5f;--navy2:#16273f;--gold:#f2c14e;--goldd:#e0a92e;--ink:#1c2530;
+ --muted:#5f6b7a;--wash:#f4f6f9;--line:#e2e6ec;--code:#16273f;--codetx:#e8edf4;
+ --mono:ui-monospace,"Cascadia Code","JetBrains Mono",Menlo,Consolas,monospace;
+ --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--wash);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5}
+.wrap{max-width:900px;margin:0 auto;padding:0 20px 60px}
+header.cs{background:var(--navy);color:#fff;border-radius:0 0 14px 14px;padding:22px 26px;margin-bottom:22px}
+header.cs .eyebrow{font-family:var(--mono);font-size:12px;color:var(--gold);margin:0 0 6px;letter-spacing:1px}
+header.cs h1{margin:0;font-size:26px}
+header.cs p{margin:6px 0 0;color:#c8d4e2;font-size:14px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:680px){.grid{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid var(--line);border-radius:11px;padding:14px 16px;break-inside:avoid}
+.card h3{margin:0 0 10px;font-size:15px;color:var(--navy);border-bottom:2px solid var(--gold);
+ padding-bottom:5px;display:inline-block}
+.row{margin:0 0 9px}
+.row code{display:block;font-family:var(--mono);font-size:12.5px;background:var(--code);color:var(--codetx);
+ padding:7px 9px;border-radius:6px;white-space:pre-wrap;word-break:break-word}
+.row .d{font-size:12.5px;color:var(--muted);margin-top:3px}
+.concept{background:#fdf6e3;border-left:3px solid var(--gold);border-radius:0 8px 8px 0;padding:10px 13px;margin:0 0 9px}
+.concept b{color:#8a6410;font-size:13px}
+.concept p{margin:3px 0 0;font-size:13px}
+.full{grid-column:1 / -1}
+.print-hint{text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);margin:18px 0 0}
+@media print{body{background:#fff}header.cs{border-radius:0}.print-hint{display:none}
+ .card{border-color:#ccc}}
+</style></head><body>
+<div class="wrap">
+<header class="cs">
+  <p class="eyebrow">DATA SCIENCE & ML · CHAPTER 7 · EXPLORATION &AMP; STATISTICS · CHEAT SHEET</p>
+  <h1>Statistics for ML</h1>
+  <p>Sampling, distributions, tests, CIs</p>
+</header>
+<div class="grid">
+<div class="card"><h3>Setup</h3><div class="row"><code>import numpy as np</code></div><div class="row"><code>from scipy import stats</code></div><div class="row"><code>np.random.seed(0)</code><div class="d">reproducible</div></div></div><div class="card"><h3>Sampling</h3><div class="row"><code>np.random.normal(mu, sd, n)</code><div class="d">draw a sample</div></div><div class="row"><code>np.random.choice(pop, n)</code><div class="d">sample from data</div></div><div class="row"><code>sample.mean()</code><div class="d">estimate</div></div></div><div class="card"><h3>Distributions</h3><div class="row"><code>~68% within 1 std</code><div class="d">of the mean (normal)</div></div><div class="row"><code>~95% within 2 std</code></div></div><div class="card"><h3>Hypothesis tests</h3><div class="row"><code>stats.ttest_ind(a, b)</code><div class="d">two independent groups</div></div><div class="row"><code>stats.ttest_rel(a, b)</code><div class="d">paired (e.g. CV folds)</div></div><div class="row"><code>p &lt; 0.05</code><div class="d">conventionally significant</div></div></div><div class="card"><h3>Confidence interval</h3><div class="row"><code>stats.sem(data)</code><div class="d">standard error</div></div><div class="row"><code>stats.t.interval(0.95,
+  n-1, loc=m, scale=sem)</code><div class="d">95% CI</div></div></div><div class="concept"><b>Read p-values carefully</b><p>A p-value is NOT the probability your hypothesis is true. &#x27;Not significant&#x27; means &#x27;not enough evidence&#x27;, not &#x27;no effect&#x27;.</p></div>
+</div>
+<p class="print-hint">Tip: press Ctrl/Cmd + P and choose "Save as PDF" to keep this cheat sheet.</p>
+</div></body></html>

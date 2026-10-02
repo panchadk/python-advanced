@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ch 2 Cheat Sheet — pandas mastery I</title>
+<style>
+:root{--navy:#1e3a5f;--navy2:#16273f;--gold:#f2c14e;--goldd:#e0a92e;--ink:#1c2530;
+ --muted:#5f6b7a;--wash:#f4f6f9;--line:#e2e6ec;--code:#16273f;--codetx:#e8edf4;
+ --mono:ui-monospace,"Cascadia Code","JetBrains Mono",Menlo,Consolas,monospace;
+ --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--wash);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5}
+.wrap{max-width:900px;margin:0 auto;padding:0 20px 60px}
+header.cs{background:var(--navy);color:#fff;border-radius:0 0 14px 14px;padding:22px 26px;margin-bottom:22px}
+header.cs .eyebrow{font-family:var(--mono);font-size:12px;color:var(--gold);margin:0 0 6px;letter-spacing:1px}
+header.cs h1{margin:0;font-size:26px}
+header.cs p{margin:6px 0 0;color:#c8d4e2;font-size:14px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:680px){.grid{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid var(--line);border-radius:11px;padding:14px 16px;break-inside:avoid}
+.card h3{margin:0 0 10px;font-size:15px;color:var(--navy);border-bottom:2px solid var(--gold);
+ padding-bottom:5px;display:inline-block}
+.row{margin:0 0 9px}
+.row code{display:block;font-family:var(--mono);font-size:12.5px;background:var(--code);color:var(--codetx);
+ padding:7px 9px;border-radius:6px;white-space:pre-wrap;word-break:break-word}
+.row .d{font-size:12.5px;color:var(--muted);margin-top:3px}
+.concept{background:#fdf6e3;border-left:3px solid var(--gold);border-radius:0 8px 8px 0;padding:10px 13px;margin:0 0 9px}
+.concept b{color:#8a6410;font-size:13px}
+.concept p{margin:3px 0 0;font-size:13px}
+.full{grid-column:1 / -1}
+.print-hint{text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);margin:18px 0 0}
+@media print{body{background:#fff}header.cs{border-radius:0}.print-hint{display:none}
+ .card{border-color:#ccc}}
+</style></head><body>
+<div class="wrap">
+<header class="cs">
+  <p class="eyebrow">DATA SCIENCE & ML · CHAPTER 2 · DATA FOUNDATIONS · CHEAT SHEET</p>
+  <h1>pandas mastery I</h1>
+  <p>Series, DataFrames, selecting, dtypes, missing data</p>
+</header>
+<div class="grid">
+<div class="card"><h3>Create / load</h3><div class="row"><code>import pandas as pd</code></div><div class="row"><code>pd.Series([1,2,3])</code><div class="d">1-D labelled column</div></div><div class="row"><code>pd.DataFrame({&#x27;a&#x27;:[1,2]})</code><div class="d">2-D table</div></div><div class="row"><code>pd.read_csv(&#x27;file.csv&#x27;)</code><div class="d">load a CSV</div></div></div><div class="card"><h3>Inspect</h3><div class="row"><code>df.head()  df.tail()</code><div class="d">first/last rows</div></div><div class="row"><code>df.shape</code><div class="d">(rows, cols)</div></div><div class="row"><code>df.dtypes</code><div class="d">column types</div></div><div class="row"><code>df.describe()</code><div class="d">numeric summary</div></div><div class="row"><code>df.info()</code><div class="d">overview</div></div></div><div class="card"><h3>Select</h3><div class="row"><code>df[&#x27;col&#x27;]</code><div class="d">one column</div></div><div class="row"><code>df[[&#x27;a&#x27;,&#x27;b&#x27;]]</code><div class="d">several columns</div></div><div class="row"><code>df.loc[row, col]</code><div class="d">by label (end inclusive)</div></div><div class="row"><code>df.iloc[0]</code><div class="d">by position (end exclusive)</div></div></div><div class="card"><h3>Filter</h3><div class="row"><code>df[df[&#x27;x&#x27;] &gt;= 80]</code><div class="d">boolean filter</div></div><div class="row"><code>df[(df.a&gt;0) &amp; (df.b&lt;5)]</code><div class="d">combine with &amp; |</div></div></div><div class="card"><h3>Missing data</h3><div class="row"><code>df.isna().sum()</code><div class="d">count NaN per column</div></div><div class="row"><code>df.dropna()</code><div class="d">drop rows with NaN</div></div><div class="row"><code>df.fillna(0)</code><div class="d">fill NaN</div></div></div><div class="card"><h3>New columns</h3><div class="row"><code>df[&#x27;c&#x27;] = df.a * df.b</code><div class="d">vectorized</div></div><div class="row"><code>df[&#x27;flag&#x27;] = df.x &gt;= 75</code><div class="d">boolean column</div></div></div><div class="concept"><b>Watch out</b><p>loc is label-based and includes the end; iloc is position-based and excludes it. Mixing them up is the #1 pandas bug.</p></div>
+</div>
+<p class="print-hint">Tip: press Ctrl/Cmd + P and choose "Save as PDF" to keep this cheat sheet.</p>
+</div></body></html>
